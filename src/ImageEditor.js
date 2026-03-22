@@ -779,10 +779,10 @@ const ImageEditor = () => {
       alert(`There was an error saving your image: ${error.message}`);
       
       // Reset button state
-      const cropButton = document.querySelector('.crop-button');
-      if (cropButton) {
-        cropButton.disabled = false;
-        cropButton.innerHTML = 'Crop & Continue';
+      const cropButtonEl = document.querySelector('.crop-button');
+      if (cropButtonEl) {
+        cropButtonEl.disabled = false;
+        cropButtonEl.innerHTML = 'Crop & Continue';
       }
     }
   };

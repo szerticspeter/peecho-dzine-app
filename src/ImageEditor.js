@@ -769,20 +769,20 @@ const ImageEditor = () => {
       setShowAddressForm(true);
 
       // Reset crop button (address form will handle the loading state from here)
-      const cropButton = document.querySelector('.crop-button');
-      if (cropButton) {
-        cropButton.disabled = false;
-        cropButton.innerHTML = 'Crop & Continue';
+      const cropButtonEl = document.querySelector('.crop-button');
+      if (cropButtonEl) {
+        cropButtonEl.disabled = false;
+        cropButtonEl.innerHTML = 'Crop & Continue';
       }
     } catch (error) {
       console.error('Error during image save:', error);
       alert(`There was an error saving your image: ${error.message}`);
       
       // Reset button state
-      const cropButtonEl = document.querySelector('.crop-button');
-      if (cropButtonEl) {
-        cropButtonEl.disabled = false;
-        cropButtonEl.innerHTML = 'Crop & Continue';
+      const cropButtonEl2 = document.querySelector('.crop-button');
+      if (cropButtonEl2) {
+        cropButtonEl2.disabled = false;
+        cropButtonEl2.innerHTML = 'Crop & Continue';
       }
     }
   };

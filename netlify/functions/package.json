@@ -5,6 +5,7 @@
   "dependencies": {
     "node-fetch": "^3.3.0",
     "node-fetch-commonjs": "^3.3.1",
-    "@shopify/shopify-api": "^7.7.0"
+    "@shopify/shopify-api": "^7.7.0",
+    "@netlify/blobs": "^8.1.0"
   }
 }

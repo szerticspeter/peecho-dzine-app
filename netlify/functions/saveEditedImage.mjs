@@ -1,11 +1,9 @@
-import { getStore } from "@netlify/blobs";
-
 /**
- * Netlify function to save an edited image using Netlify Blobs
- * Accepts a base64 data URL (canvas.toDataURL()) and stores it persistently.
- * Returns { success: true, filename } — the caller constructs the URL via getImage.
+ * Netlify function to save an edited image using Cloudinary
+ * Accepts a base64 data URL (canvas.toDataURL()) and uploads it to Cloudinary.
+ * Returns { success: true, imageUrl } — the Cloudinary secure_url.
  */
-export async function handler(event, context) {
+export async function handler(event) {
   console.log("Save Edited Image function called");
 
   const headers = {
@@ -45,7 +43,7 @@ export async function handler(event, context) {
     };
   }
 
-  const { imageData, productType = "canvas" } = body;
+  const { imageData } = body;
 
   if (!imageData) {
     return {
@@ -55,39 +53,58 @@ export async function handler(event, context) {
     };
   }
 
-  console.log("Received image data for product type:", productType);
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: "Cloudinary configuration missing (CLOUDINARY_CLOUD_NAME or CLOUDINARY_UPLOAD_PRESET not set)" })
+    };
+  }
+
+  console.log("Uploading image to Cloudinary...");
 
   try {
-    // Strip the data URL prefix (e.g. "data:image/png;base64,")
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-    // Unique filename
-    const filename = `edited-${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
-
-    // Get the Netlify Blobs store
-    const store = getStore("edited-images");
-
-    // Store the image buffer with metadata
-    await store.set(filename, imageBuffer, {
-      metadata: {
-        timestamp: new Date().toISOString(),
-        productType
-      }
+    const payload = new URLSearchParams({
+      file: imageData,
+      upload_preset: uploadPreset,
+      folder: "dzine-orders"
     });
 
-    console.log("Image saved to Netlify Blobs:", filename);
+    const response = await fetch(cloudinaryUrl, {
+      method: 'POST',
+      body: payload
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Cloudinary upload failed:", response.status, errorText);
+      return {
+        statusCode: 502,
+        headers,
+        body: JSON.stringify({ error: `Cloudinary upload failed: ${response.status}` })
+      };
+    }
+
+    const result = await response.json();
+    const imageUrl = result.secure_url;
+
+    console.log("Image uploaded to Cloudinary:", imageUrl);
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        filename
+        imageUrl
       })
     };
   } catch (error) {
-    console.error("Error saving image to Netlify Blobs:", error);
+    console.error("Error uploading image to Cloudinary:", error);
     return {
       statusCode: 500,
       headers,

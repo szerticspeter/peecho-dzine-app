@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import AddressForm from './AddressForm';
 
 // Preload the canvas image
 const preloadedCanvasImage = new Image();
@@ -42,6 +43,11 @@ const ImageEditor = () => {
   const [activeCorner, setActiveCorner] = useState(null);
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryInfo, setRecoveryInfo] = useState(null);
+
+  // Address form / checkout state
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [savedImageUrl, setSavedImageUrl] = useState(null);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
   const productImageRef = useRef(null);
@@ -756,22 +762,21 @@ const ImageEditor = () => {
       const saveResult = await saveResponse.json();
       console.log('Image saved:', saveResult);
       
-      // Step 2: TODO - Peecho checkout integration
-      // Shopify checkout has been removed. Peecho API integration is next.
-      // At this point, saveResult.imageUrl contains the URL of the cropped/saved image.
+      // Step 2: Show address form so user can enter shipping details
+      // The image URL is now available — save it in state and show the address overlay
       console.log('Image saved successfully:', saveResult.imageUrl || 'base64 data');
-      
-      // PLACEHOLDER: Peecho checkout will go here
-      // The cropped image URL is available at: saveResult.imageUrl
-      // Next steps:
-      // 1. Call Peecho API to create an order
-      // 2. Pass image URL to Peecho along with product SKU
-      // 3. Redirect user to Peecho checkout URL
-      
-      alert('Image processed successfully! Peecho checkout integration coming soon.');
+      setSavedImageUrl(saveResult.imageUrl);
+      setShowAddressForm(true);
+
+      // Reset crop button (address form will handle the loading state from here)
+      const cropButton = document.querySelector('.crop-button');
+      if (cropButton) {
+        cropButton.disabled = false;
+        cropButton.innerHTML = 'Crop & Continue';
+      }
     } catch (error) {
-      console.error('Error during checkout process:', error);
-      alert(`There was an error processing your order: ${error.message}`);
+      console.error('Error during image save:', error);
+      alert(`There was an error saving your image: ${error.message}`);
       
       // Reset button state
       const cropButton = document.querySelector('.crop-button');
@@ -779,6 +784,49 @@ const ImageEditor = () => {
         cropButton.disabled = false;
         cropButton.innerHTML = 'Crop & Continue';
       }
+    }
+  };
+
+  // Called when user submits the address form
+  const handleAddressSubmit = async (addressData) => {
+    if (!savedImageUrl) {
+      alert('Image URL is missing. Please try cropping again.');
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    try {
+      console.log('Creating Peecho order...');
+      const response = await fetch('/.netlify/functions/createPeechoOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: savedImageUrl,
+          ...addressData,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.checkoutUrl) {
+        throw new Error(result.error || 'Failed to create Peecho order.');
+      }
+
+      console.log('Peecho order created:', result.orderKey);
+      console.log('Redirecting to checkout:', result.checkoutUrl);
+
+      // Redirect to Peecho checkout
+      window.location.href = result.checkoutUrl;
+
+    } catch (error) {
+      console.error('Peecho checkout error:', error);
+      alert(
+        `We couldn't complete your order right now.\n\n` +
+        `Error: ${error.message}\n\n` +
+        `Please try again or contact support.`
+      );
+      setIsCheckingOut(false);
     }
   };
 
@@ -813,6 +861,15 @@ const ImageEditor = () => {
   
   return (
     <div className="editor-container">
+      {/* Address form overlay — shown after image is saved */}
+      {showAddressForm && (
+        <AddressForm
+          onSubmit={handleAddressSubmit}
+          onCancel={() => setShowAddressForm(false)}
+          isLoading={isCheckingOut}
+        />
+      )}
+
       <h1>Image Editor</h1>
       <p>Drag your image to position it on the canvas. The image will be fitted to minimize cropping.</p>
       

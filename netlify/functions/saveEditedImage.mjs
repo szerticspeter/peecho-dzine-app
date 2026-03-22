@@ -3,6 +3,7 @@ import { getStore } from "@netlify/blobs";
 /**
  * Netlify function to save an edited image using Netlify Blobs
  * Accepts a base64 data URL (canvas.toDataURL()) and stores it persistently.
+ * Returns { success: true, filename } — the caller constructs the URL via getImage.
  */
 export async function handler(event, context) {
   console.log("Save Edited Image function called");
@@ -64,7 +65,7 @@ export async function handler(event, context) {
     // Unique filename
     const filename = `edited-${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
 
-    // Get the Netlify Blobs store (no env vars needed — Netlify provides credentials automatically)
+    // Get the Netlify Blobs store
     const store = getStore("edited-images");
 
     // Store the image buffer with metadata
@@ -75,17 +76,14 @@ export async function handler(event, context) {
       }
     });
 
-    // Build the public URL for the stored blob
-    const imageUrl = store.getPublicUrl(filename);
-
-    console.log("Image saved to Netlify Blobs:", filename, "→", imageUrl);
+    console.log("Image saved to Netlify Blobs:", filename);
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        imageUrl
+        filename
       })
     };
   } catch (error) {

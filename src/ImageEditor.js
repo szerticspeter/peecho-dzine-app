@@ -763,9 +763,10 @@ const ImageEditor = () => {
       console.log('Image saved:', saveResult);
       
       // Step 2: Show address form so user can enter shipping details
-      // The image URL is now available — save it in state and show the address overlay
-      console.log('Image saved successfully:', saveResult.imageUrl || 'base64 data');
-      setSavedImageUrl(saveResult.imageUrl);
+      // Build the image URL from the filename using the getImage function
+      const imageUrl = `/.netlify/functions/getImage?filename=${saveResult.filename}`;
+      console.log('Image saved successfully:', saveResult.filename, '→', imageUrl);
+      setSavedImageUrl(imageUrl);
       setShowAddressForm(true);
 
       // Reset crop button (address form will handle the loading state from here)

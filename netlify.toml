@@ -1,0 +1,43 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/package.json"]
+
+[build.environment]
+  NODE_VERSION = "18"
+  SECRETS_SCAN_ENABLED = "true"
+  # Disable scanning on specific paths if needed
+  # SECRETS_SCAN_OMIT_PATHS = "/path/to/ignore"
+  # Specify keys to ignore during scanning
+  SECRETS_SCAN_OMIT_KEYS = "REACT_APP_DZINE_API_KEY"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+  
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
+[[redirects]]
+  from = "/shopify-test"
+  to = "/shopify-test.html"
+  status = 200
+  
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopify Product Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+    
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      padding: 40px;
+      margin-top: 40px;
+      margin-bottom: 40px;
+    }
+    h1 {
+      color: #008060;
+      margin-bottom: 30px;
+    }
+    .test-image {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    .button-container {
+      margin: 30px 0;
+    }
+    button {
+      padding: 12px 24px;
+      background-color: #008060;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #006e52;
+    }
+    button:disabled {
+      background-color: #95c9b4;
+      cursor: not-allowed;
+    }
+    #result-container {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      display: none;
+    }
+    #error-container {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fdf2f2;
+      border-left: 4px solid #ef4444;
+      color: #b91c1c;
+      border-radius: 4px;
+      display: none;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    a {
+      color: #008060;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .primary-link {
+      background-color: #008060;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    .primary-link:hover {
+      background-color: #006e52;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shopify Product Quick Test</h1>
+    <p>This page will create a test product in your Shopify store and redirect you to its checkout page.</p>
+    
+    <h2>Test Image</h2>
+    <img src="https://static.dzine.ai/open_product/20250322/54/img2img/1_output_1742650385000203_jrmL0.webp" alt="Test Design" class="test-image" id="testImage">
+  
+    <div class="button-container">
+      <button id="createButton">Create Shopify Product</button>
+    </div>
+    
+    <div id="result-container">
+      <h3>Product Created!</h3>
+      <p>We've created a new product in your Shopify store.</p>
+      <p>Redirecting to checkout...</p>
+    </div>
+    
+    <div id="error-container">
+      <h3>Error</h3>
+      <p id="error-message"></p>
+    </div>
+  </div> <!-- Close container div -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const createButton = document.getElementById('createButton');
+      const resultContainer = document.getElementById('result-container');
+      const errorContainer = document.getElementById('error-container');
+      const errorMessage = document.getElementById('error-message');
+      const testImage = document.getElementById('testImage');
+      
+      createButton.addEventListener('click', async function() {
+        // Show loading state
+        createButton.disabled = true;
+        createButton.innerHTML = '<span class="loading"></span> Creating product...';
+        errorContainer.style.display = 'none';
+        
+        try {
+          // Prepare product data
+          const productData = {
+            title: 'Custom Design - Test',
+            description: 'Created via Dzine.ai test page',
+            price: '29.99',
+            imageUrl: testImage.src
+          };
+          
+          // Call Netlify function to create product
+          const response = await fetch('/.netlify/functions/createShopifyProduct', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create product');
+          }
+          
+          const data = await response.json();
+          console.log('Product created:', data);
+          
+          // Show success message
+          resultContainer.style.display = 'block';
+          
+          // Build checkout URL
+          let checkoutUrl;
+          
+          if (data.product && data.product.variants && data.product.variants.length > 0) {
+            // Get the variant ID from the response
+            const variantId = data.product.variants[0].id;
+            
+            // Log for debugging
+            console.log('Variant ID:', variantId);
+            
+            // Handle different variant ID formats
+            let numericVariantId;
+            if (typeof variantId === 'string' && variantId.includes('/')) {
+              // If it's a Shopify GraphQL ID (e.g., gid://shopify/ProductVariant/12345)
+              numericVariantId = variantId.split('/').pop();
+            } else if (typeof variantId === 'string') {
+              // If it's already a string but not a GraphQL ID
+              numericVariantId = variantId;
+            } else if (typeof variantId === 'number') {
+              // If it's a number
+              numericVariantId = variantId.toString();
+            } else {
+              // Fallback
+              console.error('Unknown variant ID format:', variantId);
+              resultContainer.innerHTML += `
+                <p>Couldn't generate checkout link automatically.</p>
+                <p><a href="${data.product.admin_url}" target="_blank">View product in Shopify admin</a></p>
+              `;
+              return;
+            }
+            
+            // Log the store URL
+            console.log('Admin URL:', data.product.admin_url);
+            
+            // Extract the hostname from admin URL
+            let shopDomain;
+            try {
+              shopDomain = new URL(data.product.admin_url).hostname.replace('admin.', '');
+            } catch (error) {
+              console.error('Error parsing admin URL:', error);
+              
+              // Try to extract domain directly if possible
+              if (typeof data.product.admin_url === 'string') {
+                const matches = data.product.admin_url.match(/https?:\/\/([^\/]+)/);
+                if (matches && matches[1]) {
+                  shopDomain = matches[1].replace('admin.', '');
+                } else {
+                  // Hardcoded fallback
+                  shopDomain = 'your-store.myshopify.com';
+                }
+              } else {
+                // Hardcoded fallback
+                shopDomain = 'your-store.myshopify.com';
+              }
+            }
+            
+            // Try different approaches to navigate to the product
+            
+            // 1. Direct product page link (more likely to work)
+            const productHandle = data.product.handle || data.product.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const productUrl = `https://${shopDomain}/products/${productHandle}`;
+            console.log('Product URL:', productUrl);
+            
+            // 2. Cart URL as fallback (may have permission issues)
+            const cartUrl = `https://${shopDomain}/cart/${numericVariantId}:1`;
+            console.log('Cart URL:', cartUrl);
+            
+            // 3. Admin URL (always works for store admins)
+            const adminUrl = data.product.admin_url;
+            
+            // Add links to the page with multiple options
+            resultContainer.innerHTML += `
+              <p>Product created successfully! Choose an option:</p>
+              <p>
+                <a href="${productUrl}" target="_blank" class="primary-link">View product page</a><br>
+                <a href="${cartUrl}" target="_blank">Try direct checkout</a><br>
+                <a href="${adminUrl}" target="_blank">View in Shopify admin</a>
+              </p>
+            `;
+            
+            // Redirect to product page after a short delay
+            setTimeout(() => {
+              window.location.href = productUrl;
+            }, 2000);
+          } else {
+            // If we can't get the variant ID, show a link to the admin URL
+            resultContainer.innerHTML += `
+              <p>Couldn't generate checkout link automatically.</p>
+              <p><a href="${data.product.admin_url}" target="_blank">View product in Shopify admin</a></p>
+            `;
+          }
+        } catch (error) {
+          console.error('Error creating product:', error);
+          
+          // Show error message
+          errorMessage.textContent = error.message || 'An unknown error occurred';
+          errorContainer.style.display = 'block';
+          
+          // Reset button
+          createButton.disabled = false;
+          createButton.textContent = 'Try Again';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

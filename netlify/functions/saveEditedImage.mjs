@@ -69,15 +69,17 @@ export async function handler(event) {
   try {
     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-    const payload = new URLSearchParams({
-      file: imageData,
-      upload_preset: uploadPreset,
-      folder: "dzine-orders"
-    });
+    // Use FormData for proper multipart/form-data encoding (required by Cloudinary for file uploads)
+    const formData = new FormData();
+    formData.append('file', imageData);
+    formData.append('upload_preset', uploadPreset);
+    formData.append('folder', 'dzine-orders');
 
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
-      body: payload
+      body: formData
+      // Note: Do NOT set Content-Type header when using FormData
+      // The browser will automatically set it with the correct boundary
     });
 
     if (!response.ok) {

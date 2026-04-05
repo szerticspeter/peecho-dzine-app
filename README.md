@@ -71,6 +71,7 @@ Ready to deploy! 🚀
 | [`PEECHO_API.md`](./PEECHO_API.md) | Complete Peecho V3 API guide + integration plan |
 | [`peechoapiv3.apib`](./peechoapiv3.apib) | Official Peecho API specification (APIB format) |
 | [`scripts/peecho_create_publication.py`](./scripts/peecho_create_publication.py) | Working Python example (standalone test) |
+| `CANVAS_CHECKOUT.md` *(coming)* | Canvas product specs & Peecho checkout flow |
 
 ---
 
@@ -155,14 +156,28 @@ CLOUDINARY_UPLOAD_PRESET=peecho-dzine-app-upload-preset
 ✅ Deployed to production successfully
 ✅ Verified Cloudinary works end-to-end with real image
 
+### Important: No Peecho Crop/Adjust UI for Canvas
+
+⚠️ **Canvas product info** (Peecho documentation):
+- Canvases have **fixed sizes** (no dynamic adjustment in Peecho checkout)
+- Our Image Editor tool = the only adjustment UI
+- Image prints exactly as cropped in our editor
+- No backup preview/adjust in Peecho (unlike Prints/Dibond)
+
+**What this means:**
+- Our cropping tool is critical → mobile UX needs work (future improvement)
+- User gets precise control BEFORE checkout
+- Peecho checkout is straightforward: preview → address → payment
+
 ### Deployment Checklist
 
 - [x] Find Canvas offering_id in Peecho dashboard
 - [x] Set `fixedOfferingId` in `createPeechoPublication.mjs`
 - [x] Configure product dimensions (41x51cm)
 - [ ] Deploy to Netlify (`netlify deploy --prod`)
-- [ ] Test: Image → Dzine → Canvas → Order
-- [ ] Verify checkout shows Canvas options
+- [ ] Test: Image → Dzine → Canvas → Order → Peecho checkout
+- [ ] Verify no additional Peecho crop UI (canvas is fixed)
 - [ ] Go live!
 
 **Ready to deploy!** All code in place. 🚀
+*Note: Canvas mobile cropping experience needs work (future sprint)*

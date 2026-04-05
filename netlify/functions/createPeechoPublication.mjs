@@ -4,12 +4,15 @@
  *
  * Flow:
  *   1. Receive { imageUrl, title?, currency?, locale? } from frontend
- *   2. POST https://www.peecho.com/rest/v3/publication/create with Canvas offering locked in
+ *   2. POST https://www.peecho.com/rest/v3/publication/create
  *   3. Return { checkoutUrl } → frontend redirects user
+ *
+ * Note: No fixedOfferingId — Peecho auto-filters available products
+ * by user's shipping location and image dimensions.
+ * Note: No enableSecureCheckout — simple numeric ID + /print/{id} URL is more reliable.
  */
 
 const PEECHO_ENDPOINT = 'https://www.peecho.com/rest/v3/publication/create';
-const CANVAS_OFFERING_ID = 6968193;  // 41x51cm / 16x20" Stretched Canvas [Black Wrap]
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -66,8 +69,6 @@ export async function handler(event) {
     apiKey,
     currency,
     locale,
-    enableSecureCheckout: true,
-    fixedOfferingId: CANVAS_OFFERING_ID,  // Lock to 41x51cm / 16x20" Canvas
     order: {
       reference: `dzine-${Date.now()}`,
       product: {
@@ -77,8 +78,8 @@ export async function handler(event) {
             src: imageUrl,
             pages: 1,
             dimensions: {
-              width: 41,    // cm (41x51cm canvas)
-              height: 51,
+              width: 210,
+              height: 297,
             },
           },
         },
@@ -111,32 +112,21 @@ export async function handler(event) {
       throw new Error(`Peecho API error (${response.status}): ${msg}`);
     }
 
-    // enableSecureCheckout=true returns { secure_publication_id, token }
-    if (data.secure_publication_id) {
-      const checkoutUrl = `https://www.peecho.com/checkout/print/${locale}/${data.secure_publication_id}?token=${data.token}`;
-      console.log('Publication created, checkout URL:', checkoutUrl);
+    // Response is a numeric publication ID (e.g. 2196792)
+    const publicationId = typeof data === 'number' ? data : parseInt(data, 10);
 
-      return jsonResponse(200, {
-        success: true,
-        checkoutUrl,
-        publicationId: data.secure_publication_id,
-      });
+    if (!publicationId || isNaN(publicationId)) {
+      throw new Error('Peecho returned an unexpected response: ' + JSON.stringify(data));
     }
 
-    // Fallback: numeric publication ID (enableSecureCheckout=false or older response)
-    if (data) {
-      const publicationId = typeof data === 'number' ? data : data.publicationId || data.id;
-      const checkoutUrl = `https://www.peecho.com/print/${publicationId}`;
-      console.log('Publication created (numeric), checkout URL:', checkoutUrl);
+    const checkoutUrl = `https://www.peecho.com/print/${publicationId}`;
+    console.log('Publication created:', publicationId, '→', checkoutUrl);
 
-      return jsonResponse(200, {
-        success: true,
-        checkoutUrl,
-        publicationId,
-      });
-    }
-
-    throw new Error('Peecho returned an unexpected response: ' + JSON.stringify(data));
+    return jsonResponse(200, {
+      success: true,
+      checkoutUrl,
+      publicationId,
+    });
 
   } catch (err) {
     console.error('createPeechoPublication error:', err.message);

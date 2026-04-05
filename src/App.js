@@ -481,7 +481,7 @@ function App() {
                   </div>
                   <div className="step-item">
                     <div className="step-number">3</div>
-                    <p>Place your order and your wall art will be shipped to your or your loved one's home!</p>
+                    <p>Select canvas size, place your order and your wall art will be shipped to your or your loved one's home!</p>
                     <div className="step-image">
                       <div className="canvas-print">
                         <img src="/images/family-flamenco-dance.jpg" alt="Art on canvas print" />

@@ -69,11 +69,22 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   const resultRef = useRef(null);
+  const styleSectionRef = useRef(null);
+  const orderButtonRef = useRef(null);
+  const isFirstResult = useRef(true);
 
   const processingMessages = [
-    "Your stylized image is being generated — it may take up to 30 seconds",
+    "Your stylized image is being generated — it may take up to 60 seconds",
     "Our AI is carefully applying your chosen artistic style…",
+    "Analysing the unique features of your photo…",
+    "Blending colours and textures to match the style…",
     "Putting the finishing creative touches on your image…",
+    "Refining the details for the best result…",
+    "Making sure every brushstroke is perfect…",
+    "The magic is almost complete…",
+    "Just a few more seconds…",
+    "Polishing the final result…",
+    "Your artwork is nearly ready…",
     "Almost there!",
   ];
 
@@ -92,7 +103,22 @@ function App() {
     if (result && resultRef.current) {
       resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    if (!result) isFirstResult.current = true;
   }, [result]);
+
+  useEffect(() => {
+    if (!result?.selectedUrl) return;
+    if (isFirstResult.current) { isFirstResult.current = false; return; }
+    orderButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [result?.selectedUrl]);
+
+  useEffect(() => {
+    if (!uploadedImage) return;
+    const timer = setTimeout(() => {
+      styleSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [uploadedImage]);
 
   useEffect(() => {
     if (!uploadedImage) { setPreviewUrl(null); return; }
@@ -563,7 +589,7 @@ function App() {
               </section>
 
               {uploadedImage && (
-                <section className="style-section">
+                <section className="style-section" ref={styleSectionRef}>
                   <h2>Choose an Artistic Style</h2>
                   <p className="style-description">
                     Select one of our artistic styles to transform your photo into a unique piece of art.
@@ -633,7 +659,8 @@ function App() {
                       </div>
                     ))}
                   </div>
-                  <button 
+                  <button
+                    ref={orderButtonRef}
                     onClick={() => {
                       const selectedIndex = result.urls.indexOf(result.selectedUrl);
                       const originalUrl = result.originalUrls?.[selectedIndex] || result.selectedUrl;

@@ -46,19 +46,22 @@ netlify deploy --prod
 
 ## Peecho Integration 
 
-**Status:** API Working ✅ | Integration Pending 🔜
+**Status:** ✅ API Working | 🔜 Canvas MVP Ready
 
-See **[PEECHO_API.md](./PEECHO_API.md)** for:
-- ✅ **Complete API documentation** (with working Python example)
-- ✅ **Implementation guide** for Netlify functions + React
-- ✅ **Official Peecho API V3 spec** (APIB format in `peechoapiv3.apib`)
+### MVP: Canvas-Only Product
 
-### Quick Flow
+The app is ready for Canvas! Just need:
+1. Find Canvas `offering_id` in Peecho dashboard (Settings > Products)
+2. Set it in `netlify/functions/createPeechoPublication.mjs` (env var `PEECHO_CANVAS_OFFERING_ID`)
+3. Deploy
+4. Test end-to-end
+
+### Flow
 ```
-User crops image → Create Peecho Publication (API) → Receive Checkout URL → Redirect
+User uploads image → Dzine styles it → Crop to canvas → Save to Cloudinary → Create Peecho Publication → Checkout
 ```
 
-**Next Step:** Implement Netlify function `createPeechoPublication.mjs` (see PEECHO_API.md for code)
+**Detailed setup:** See **[PEECHO_API.md](./PEECHO_API.md)**
 
 ---
 
@@ -153,19 +156,13 @@ CLOUDINARY_UPLOAD_PRESET=peecho-dzine-app-upload-preset
 ✅ Deployed to production successfully
 ✅ Verified Cloudinary works end-to-end with real image
 
-### Next Implementation Steps
+### MVP Checklist
 
-**File to create:** `netlify/functions/createPeechoPublication.mjs`
+- [ ] Find Canvas offering_id in Peecho dashboard
+- [ ] Set `PEECHO_CANVAS_OFFERING_ID` environment variable (Netlify)
+- [ ] Update `createPeechoPublication.mjs` to use `fixedOfferingId`
+- [ ] Test: Image → Dzine → Canvas → Order
+- [ ] Verify checkout shows only Canvas options
+- [ ] Deploy to production
 
-```javascript
-// See PEECHO_API.md for complete code example
-// POST endpoint that:
-// 1. Receives imageUrl from frontend
-// 2. Calls Peecho API with user's image
-// 3. Returns checkout URL
-// 4. Frontend redirects user
-```
-
-**React integration:** Hook into `ImageEditor.js` after crop is saved
-
-See [`PEECHO_API.md`](./PEECHO_API.md) for complete code & integration steps.
+**All code already in place** — just needs offering_id configuration!

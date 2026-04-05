@@ -350,12 +350,72 @@ const redirectToCheckout = async (imageUrl) => {
 
 ---
 
+## MVP Implementation: Canvas-Only Product
+
+**Status:** 🔜 Ready for Canvas offering_id integration
+
+### Key Discovery: fixedOfferingId Parameter
+
+The Publication API supports limiting the product type:
+
+```javascript
+{
+  apiKey,
+  currency,
+  locale,
+  enableSecureCheckout: true,
+  fixedOfferingId: 180000,  // ← Canvas product ID (find yours in dashboard)
+  order: { ... }
+}
+```
+
+With `fixedOfferingId` set, the checkout shows only the specified Canvas product (no user selection needed).
+
+### MVP Strategy: Single Canvas Product
+
+**Why:**
+- ✅ Cropping tool already built for 16x20 canvas (printable area corners pre-defined)
+- ✅ No UI changes needed
+- ✅ Can launch immediately
+- ✅ Foundation for adding more products later
+
+**To implement:**
+1. Find Canvas offering_id in your Peecho dashboard (Settings > Products)
+2. Set `fixedOfferingId: YOUR_CANVAS_ID` in `createPeechoPublication.mjs`
+3. Test end-to-end
+4. Deploy
+
+### Finding Your Canvas Offering ID
+
+**Method 1: Peecho Dashboard**
+```
+1. Log in: https://www.peecho.com
+2. Settings > Products
+3. Find "Canvas" product
+4. Note the ID (e.g., 180123)
+```
+
+**Method 2: Offering List API**
+```
+GET https://www.peecho.com/rest/v3/offering/list
+  ?merchantApiKey=YOUR_KEY
+  &categoryFilter=WA          (Wall Art)
+  &subCategoryFilter=CA       (Canvas)
+```
+
+Returns all Canvas offerings available for your account + region.
+
+---
+
 ## Status
 
 ✅ **Peecho API V3 Publication Creation** - WORKING
 - Endpoint confirmed
 - Authentication working
 - Returns functional checkout links
-- Ready for integration
+- Ready for Canvas integration
 
-🔜 **Next:** Integrate into Dzine app workflow (see section above)
+🔜 **Next:** 
+1. Find Canvas offering_id
+2. Add `fixedOfferingId` to createPeechoPublication.mjs
+3. Test → Deploy

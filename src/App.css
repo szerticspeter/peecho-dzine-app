@@ -175,23 +175,18 @@ body {
   }
 
   .step-image-styles {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 4px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
   }
 
   .style-img {
-    width: 75%;
-    height: 90px;
+    width: 100%;
+    height: 160px;
     object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    border-radius: 6px;
+    display: block;
   }
-
-  .style-img--left  { align-self: flex-start; }
-  .style-img--right { align-self: flex-end; }
-  .style-img--center { align-self: center; }
 
   .canvas-print {
     border-radius: 4px;

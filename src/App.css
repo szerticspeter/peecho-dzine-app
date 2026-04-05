@@ -175,15 +175,23 @@ body {
   }
 
   .step-image-styles {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
   }
 
-  .step-image-styles img {
-    height: 120px;
-    border-radius: 5px;
+  .style-img {
+    width: 75%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
   }
+
+  .style-img--left  { align-self: flex-start; }
+  .style-img--right { align-self: flex-end; }
+  .style-img--center { align-self: center; }
 
   .canvas-print {
     border-radius: 4px;
@@ -199,17 +207,6 @@ body {
     height: 160px;
   }
 
-  .step-delivery-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 160px;
-  }
-
-  .step-delivery-icon svg {
-    width: 130px;
-    height: 130px;
-  }
   
   .upload-section {
     margin: 40px auto;

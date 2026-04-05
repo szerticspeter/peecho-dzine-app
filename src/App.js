@@ -460,41 +460,48 @@ function App() {
       </header>
             
             <main>
-              <section className="product-samples">
-                <h2>Perfect for Any Special Occasion</h2>
-                <div className="products-container">
-                  <div className="product-item">
-                    <img src="/images/mug-sample.png" alt="Stylized photo on a mug" />
-                    <span>Custom Mugs</span>
-                  </div>
-                  <div className="product-item">
-                    <img src="/images/cushion-sample.png" alt="Stylized photo on a cushion" />
-                    <span>Photo Cushions</span>
-                  </div>
-                  <div className="product-item">
-                    <img src="/images/canvas-sample.jpg" alt="Stylized photo on canvas" />
-                    <span>Canvas Prints</span>
-                  </div>
-                </div>
-                <p className="sample-description">
-                  Turn cherished photos into unique artwork that will be treasured for years to come.
-                  Perfect for birthdays, anniversaries, or just to show how much you care.
-                </p>
-              </section>
               <section className="create-gift-section">
-                <h2>Create Your Gift in 3 Easy Steps</h2>
+                <h2>Create Your Gift in 4 Easy Steps</h2>
                 <div className="steps-container">
                   <div className="step-item">
                     <div className="step-number">1</div>
                     <p>Upload a photo of your loved ones</p>
+                    <div className="step-image">
+                      <img src="/images/family.jpg" alt="Family photo example" />
+                    </div>
                   </div>
                   <div className="step-item">
                     <div className="step-number">2</div>
                     <p>Select an artistic style to transform it</p>
+                    <div className="step-image step-image-styles">
+                      <img src="/images/family-flamenco-dance.jpg" alt="Flamenco Dance style" />
+                      <img src="/images/family-gta-comic.jpg" alt="GTA Comic style" />
+                      <img src="/images/family-toon-face.jpg" alt="Toon Face style" />
+                    </div>
                   </div>
                   <div className="step-item">
                     <div className="step-number">3</div>
-                    <p>Choose your product and place your order</p>
+                    <p>Choose your canvas size and place your order</p>
+                    <div className="step-image">
+                      <div className="canvas-print">
+                        <img src="/images/family-flamenco-dance.jpg" alt="Art on canvas print" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="step-item">
+                    <div className="step-number">4</div>
+                    <p>Your present will be shipped to your or your loved one's home!</p>
+                    <div className="step-image step-delivery-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 110" fill="none">
+                        <rect x="18" y="52" width="84" height="50" rx="4" fill="#f0ebff" stroke="#8b5cf6" strokeWidth="2.5"/>
+                        <polygon points="10,54 60,16 110,54" fill="#8b5cf6"/>
+                        <rect x="46" y="72" width="28" height="30" rx="3" fill="#6a11cb"/>
+                        <circle cx="70" cy="87" r="2.5" fill="#f0ebff"/>
+                        <rect x="22" y="60" width="20" height="18" rx="2" fill="#ddd6fe" stroke="#8b5cf6" strokeWidth="1.5"/>
+                        <rect x="78" y="60" width="20" height="18" rx="2" fill="#ddd6fe" stroke="#8b5cf6" strokeWidth="1.5"/>
+                        <path d="M60 36 C60 31 53 28 53 34 C53 39.5 60 44 60 44 C60 44 67 39.5 67 34 C67 28 60 31 60 36Z" fill="#e74c3c"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
                 

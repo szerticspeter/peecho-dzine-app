@@ -474,9 +474,9 @@ function App() {
                     <div className="step-number">2</div>
                     <p>Select an artistic style to transform it</p>
                     <div className="step-image step-image-styles">
-                      <img src="/images/family-flamenco-dance.jpg" alt="Flamenco Dance style" className="style-img" />
-                      <img src="/images/family-gta-comic.jpg" alt="GTA Comic style" className="style-img" />
-                      <img src="/images/family-toon-face.jpg" alt="Toon Face style" className="style-img" />
+                      <img src="/images/family-flamenco-dance.jpg" alt="Flamenco Dance style" className="style-img style-img--left" />
+                      <img src="/images/family-gta-comic.jpg" alt="GTA Comic style" className="style-img style-img--right" />
+                      <img src="/images/family-toon-face.jpg" alt="Toon Face style" className="style-img style-img--center" />
                     </div>
                   </div>
                   <div className="step-item">

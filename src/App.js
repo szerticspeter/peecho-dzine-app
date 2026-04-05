@@ -60,12 +60,46 @@ function App() {
   };
 
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingMessageIndex, setProcessingMessageIndex] = useState(0);
   const [result, setResult] = useState(null);
   const [styles, setStyles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+  const resultRef = useRef(null);
+
+  const processingMessages = [
+    "Your stylized image is being generated — it may take up to 30 seconds",
+    "Our AI is carefully applying your chosen artistic style…",
+    "Putting the finishing creative touches on your image…",
+    "Almost there!",
+  ];
+
+  useEffect(() => {
+    if (!isProcessing) {
+      setProcessingMessageIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setProcessingMessageIndex(prev => Math.min(prev + 1, processingMessages.length - 1));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isProcessing]);
+
+  useEffect(() => {
+    if (result && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (!uploadedImage) { setPreviewUrl(null); return; }
+    const url = URL.createObjectURL(uploadedImage);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [uploadedImage]);
   
   // Debug environment variables on startup - minimal version to avoid exposing secrets
   console.log('App initialized, ENV vars status:');
@@ -456,12 +490,11 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Give a Special Gift</h1>
-        <p className="subtitle">Order a stylized image of your loved ones on premium products</p>
+        <p className="subtitle">Order a stylized image of your loved ones on canvas</p>
       </header>
             
             <main>
               <section className="create-gift-section">
-                <h2>Create Your Gift in 3 Easy Steps</h2>
                 <div className="steps-container">
                   <div className="step-item">
                     <div className="step-number">1</div>
@@ -502,13 +535,15 @@ function App() {
                   
                   <h3 className="upload-heading">Start with Your Photo</h3>
                   
-                  <p className="upload-text">
-                    {uploadedImage 
-                      ? `Selected file: ${uploadedImage.name}` 
-                      : 'Upload a clear photo of your loved ones - family portraits work best!'}
-                  </p>
-                  
-                  <button 
+                  {previewUrl ? (
+                    <div className="upload-preview">
+                      <img src={previewUrl} alt="Your uploaded photo" />
+                    </div>
+                  ) : (
+                    <p className="upload-text">Upload a clear photo of your loved ones — family portraits work best!</p>
+                  )}
+
+                  <button
                     className="upload-button"
                     onClick={handleButtonClick}
                   >
@@ -559,10 +594,22 @@ function App() {
                 </section>
               )}
 
-              {isProcessing && <div className="processing">Processing your image...</div>}
+              {isProcessing && (
+                <div className="processing-card">
+                  <div className="processing-spinner"></div>
+                  <p className="processing-message" key={processingMessageIndex}>
+                    {processingMessages[processingMessageIndex]}
+                  </p>
+                  <div className="processing-dots">
+                    {processingMessages.map((_, i) => (
+                      <div key={i} className={`processing-dot ${i === processingMessageIndex ? 'active' : ''}`} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {result && (
-                <section className="result-section">
+                <section className="result-section" ref={resultRef}>
                   <h2>Your Stylized Images are Ready!</h2>
                   <p className="result-description">
                     Your photo has been transformed! Choose your favorite version below.

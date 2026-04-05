@@ -1,10 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import ProductSelect from './ProductSelect';
-import ImageEditor from './ImageEditor';
 
 function App() {
+  const [isOrdering, setIsOrdering] = useState(false);
+
+  const handleOrderNow = async (imageUrl) => {
+    setIsOrdering(true);
+    try {
+      // Step 1: Save to Cloudinary
+      const saveResponse = await fetch('/.netlify/functions/saveEditedImage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageData: imageUrl }),
+      });
+
+      if (!saveResponse.ok) {
+        const err = await saveResponse.json().catch(() => ({}));
+        throw new Error(err.error || `Image save failed (HTTP ${saveResponse.status})`);
+      }
+
+      const saveResult = await saveResponse.json();
+      const cloudinaryUrl = saveResult.imageUrl;
+      if (!cloudinaryUrl) throw new Error('Cloudinary did not return an image URL.');
+
+      // Step 2: Create Peecho Publication
+      const pubResponse = await fetch('/.netlify/functions/createPeechoPublication', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: cloudinaryUrl }),
+      });
+
+      const pubResult = await pubResponse.json();
+      if (!pubResponse.ok || !pubResult.checkoutUrl) {
+        throw new Error(pubResult.error || 'Failed to create Peecho publication.');
+      }
+
+      // Step 3: Redirect to Peecho checkout
+      window.location.href = pubResult.checkoutUrl;
+
+    } catch (error) {
+      console.error('Order error:', error);
+      alert(`Something went wrong:\n\n${error.message}\n\nPlease try again.`);
+      setIsOrdering(false);
+    }
+  };
+
   const [uploadedImage, setUploadedImage] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -398,35 +438,11 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={
-          <div className="App">
-            <header className="App-header">
-              <h1>Give a Special Gift</h1>
-              <p className="subtitle">Order a stylized image of your loved ones on premium products</p>
-              <div className="test-links">
-                <a href="/editor" className="test-link">Test Editor Tool →</a>
-                <a 
-                  href="/tools/product-template-creator-app/standalone.html" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="test-link admin-link"
-                  style={{ marginLeft: '15px', background: '#2c3e50' }}
-                >
-                  Admin: Template Creator
-                </a>
-                <a 
-                  href="/tools/auto-rectanguler/index.html" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="test-link admin-link"
-                  style={{ marginLeft: '15px', background: '#8e44ad' }}
-                >
-                  Admin: Rectangle Detector
-                </a>
-              </div>
-            </header>
+    <div className="App">
+      <header className="App-header">
+        <h1>Give a Special Gift</h1>
+        <p className="subtitle">Order a stylized image of your loved ones on premium products</p>
+      </header>
             
             <main>
               <section className="product-samples">
@@ -564,14 +580,13 @@ function App() {
                     ))}
                   </div>
                   <button 
-                    onClick={() => {
-                      // Store the selected image in sessionStorage
-                      sessionStorage.setItem('stylizedImage', result.selectedUrl);
-                      window.location.href = '/editor';
-                    }}
+                    onClick={() => handleOrderNow(result.selectedUrl)}
                     className="create-product-button"
+                    disabled={isOrdering}
                   >
-                    Continue to Image Editor
+                    {isOrdering
+                      ? <><span className="spinner"></span>Preparing your order…</>
+                      : 'Order Now →'}
                   </button>
                   <p className="guarantee-text">
                     <svg className="guarantee-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
@@ -582,13 +597,8 @@ function App() {
                   </p>
                 </section>
               )}
-            </main>
-          </div>
-        } />
-        <Route path="/products" element={<ProductSelect />} />
-        <Route path="/editor" element={<ImageEditor />} />
-      </Routes>
-    </Router>
+      </main>
+    </div>
   );
 }
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
-import AddressForm from './AddressForm';
 
 // Preload the canvas image
 const preloadedCanvasImage = new Image();
@@ -44,9 +43,7 @@ const ImageEditor = () => {
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryInfo, setRecoveryInfo] = useState(null);
 
-  // Address form / checkout state
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [savedImageUrl, setSavedImageUrl] = useState(null);
+  // Checkout state
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -696,137 +693,93 @@ const ImageEditor = () => {
 
   // Removed wheel handler as we're removing the zoom feature
 
-  // Crop the image to the printable area and proceed to Peecho checkout
-  // TODO: Integrate Peecho API for print-on-demand fulfillment
+  // Crop the image, save to Cloudinary, create Peecho publication, redirect to checkout
   const cropImage = async () => {
     if (!canvasRef.current || !imageRef.current || printableCorners.length !== 4) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    // Create a temporary canvas for the cropped image
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    
-    // Calculate the scale factors
-    const scaleFactorX = canvas.width / productImageRef.current.width;
-    const scaleFactorY = canvas.height / productImageRef.current.height;
-    
-    // Calculate the dimensions of the printable area
-    const printableWidth = Math.abs(printableCorners[1].x - printableCorners[0].x) * scaleFactorX;
-    const printableHeight = Math.abs(printableCorners[3].y - printableCorners[0].y) * scaleFactorY;
-    
-    // Set the temporary canvas size to the printable area
-    tempCanvas.width = printableWidth;
-    tempCanvas.height = printableHeight;
-    
-    // Calculate the top-left corner of the printable area
-    const printableLeft = printableCorners[0].x * scaleFactorX;
-    const printableTop = printableCorners[0].y * scaleFactorY;
-    
-    // Draw only the portion of the user image that's in the printable area
-    tempCtx.save();
-    tempCtx.translate(-printableLeft, -printableTop);
-    tempCtx.translate(imagePosition.x, imagePosition.y);
-    tempCtx.scale(imageScale, imageScale);
-    tempCtx.drawImage(imageRef.current, 0, 0);
-    tempCtx.restore();
-    
-    // Convert the temporary canvas to a data URL
-    const croppedImageData = tempCanvas.toDataURL('image/png');
-    
-    try {
-      // Show loading state
-      const cropButton = document.querySelector('.crop-button');
-      const originalButtonText = cropButton.innerHTML;
-      cropButton.disabled = true;
-      cropButton.innerHTML = '<span class="spinner"></span>Processing...';
-      
-      // Step 1: Save the cropped image using the serverless function
-      console.log('Saving cropped image...');
-      const saveResponse = await fetch('/.netlify/functions/saveEditedImage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          imageData: croppedImageData,
-          productType: 'canvas'
-        })
-      });
-      
-      if (!saveResponse.ok) {
-        throw new Error('Failed to save the image');
-      }
-      
-      const saveResult = await saveResponse.json();
-      console.log('Image saved:', saveResult);
-      
-      // Step 2: Show address form so user can enter shipping details
-      // Build the image URL from the filename using the getImage function
-      const imageUrl = `/.netlify/functions/getImage?filename=${saveResult.filename}`;
-      console.log('Image saved successfully:', saveResult.filename, '→', imageUrl);
-      setSavedImageUrl(imageUrl);
-      setShowAddressForm(true);
 
-      // Reset crop button (address form will handle the loading state from here)
-      const cropButtonEl = document.querySelector('.crop-button');
-      if (cropButtonEl) {
-        cropButtonEl.disabled = false;
-        cropButtonEl.innerHTML = 'Crop & Continue';
-      }
-    } catch (error) {
-      console.error('Error during image save:', error);
-      alert(`There was an error saving your image: ${error.message}`);
-      
-      // Reset button state
-      const cropButtonEl2 = document.querySelector('.crop-button');
-      if (cropButtonEl2) {
-        cropButtonEl2.disabled = false;
-        cropButtonEl2.innerHTML = 'Crop & Continue';
-      }
-    }
-  };
+    const cropButton = document.querySelector('.crop-button');
 
-  // Called when user submits the address form
-  const handleAddressSubmit = async (addressData) => {
-    if (!savedImageUrl) {
-      alert('Image URL is missing. Please try cropping again.');
-      return;
-    }
+    const setButtonState = (loading) => {
+      if (!cropButton) return;
+      cropButton.disabled = loading;
+      cropButton.innerHTML = loading
+        ? '<span class="spinner"></span>Processing...'
+        : 'Crop & Order';
+    };
 
+    setButtonState(true);
     setIsCheckingOut(true);
 
     try {
-      console.log('Creating Peecho order...');
-      const response = await fetch('/.netlify/functions/createPeechoOrder', {
+      // ── Step 1: Crop the image to the printable area ──────────────────
+      const canvas = canvasRef.current;
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+
+      const scaleFactorX = canvas.width / productImageRef.current.width;
+      const scaleFactorY = canvas.height / productImageRef.current.height;
+
+      const printableWidth  = Math.abs(printableCorners[1].x - printableCorners[0].x) * scaleFactorX;
+      const printableHeight = Math.abs(printableCorners[3].y - printableCorners[0].y) * scaleFactorY;
+      const printableLeft   = printableCorners[0].x * scaleFactorX;
+      const printableTop    = printableCorners[0].y * scaleFactorY;
+
+      tempCanvas.width  = printableWidth;
+      tempCanvas.height = printableHeight;
+
+      tempCtx.save();
+      tempCtx.translate(-printableLeft, -printableTop);
+      tempCtx.translate(imagePosition.x, imagePosition.y);
+      tempCtx.scale(imageScale, imageScale);
+      tempCtx.drawImage(imageRef.current, 0, 0);
+      tempCtx.restore();
+
+      const croppedImageData = tempCanvas.toDataURL('image/png');
+
+      // ── Step 2: Save to Cloudinary via serverless function ────────────
+      console.log('Saving cropped image to Cloudinary...');
+      const saveResponse = await fetch('/.netlify/functions/saveEditedImage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: savedImageUrl,
-          ...addressData,
-        }),
+        body: JSON.stringify({ imageData: croppedImageData }),
       });
 
-      const result = await response.json();
-
-      if (!response.ok || !result.checkoutUrl) {
-        throw new Error(result.error || 'Failed to create Peecho order.');
+      if (!saveResponse.ok) {
+        const err = await saveResponse.json().catch(() => ({}));
+        throw new Error(err.error || `Image save failed (HTTP ${saveResponse.status})`);
       }
 
-      console.log('Peecho order created:', result.orderKey);
-      console.log('Redirecting to checkout:', result.checkoutUrl);
+      const saveResult = await saveResponse.json();
+      const imageUrl = saveResult.imageUrl;
 
-      // Redirect to Peecho checkout
-      window.location.href = result.checkoutUrl;
+      if (!imageUrl) {
+        throw new Error('Cloudinary did not return an image URL.');
+      }
+      console.log('Image saved to Cloudinary:', imageUrl);
+
+      // ── Step 3: Create Peecho publication ────────────────────────────
+      console.log('Creating Peecho publication...');
+      const pubResponse = await fetch('/.netlify/functions/createPeechoPublication', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      const pubResult = await pubResponse.json();
+
+      if (!pubResponse.ok || !pubResult.checkoutUrl) {
+        throw new Error(pubResult.error || 'Failed to create Peecho publication.');
+      }
+
+      console.log('Publication created, redirecting to:', pubResult.checkoutUrl);
+
+      // ── Step 4: Redirect to Peecho checkout ──────────────────────────
+      window.location.href = pubResult.checkoutUrl;
 
     } catch (error) {
-      console.error('Peecho checkout error:', error);
-      alert(
-        `We couldn't complete your order right now.\n\n` +
-        `Error: ${error.message}\n\n` +
-        `Please try again or contact support.`
-      );
+      console.error('Checkout error:', error);
+      alert(`Something went wrong:\n\n${error.message}\n\nPlease try again.`);
+      setButtonState(false);
       setIsCheckingOut(false);
     }
   };
@@ -862,15 +815,6 @@ const ImageEditor = () => {
   
   return (
     <div className="editor-container">
-      {/* Address form overlay — shown after image is saved */}
-      {showAddressForm && (
-        <AddressForm
-          onSubmit={handleAddressSubmit}
-          onCancel={() => setShowAddressForm(false)}
-          isLoading={isCheckingOut}
-        />
-      )}
-
       <h1>Image Editor</h1>
       <p>Drag your image to position it on the canvas. The image will be fitted to minimize cropping.</p>
       
@@ -916,7 +860,9 @@ const ImageEditor = () => {
       </div>
       
       <div className="editor-actions">
-        <button className="crop-button" onClick={cropImage}>Crop & Continue</button>
+        <button className="crop-button" onClick={cropImage} disabled={isCheckingOut}>
+          {isCheckingOut ? <><span className="spinner"></span>Processing...</> : 'Crop & Order'}
+        </button>
       </div>
     </div>
   );

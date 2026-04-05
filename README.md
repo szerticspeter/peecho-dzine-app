@@ -9,16 +9,16 @@ A print-on-demand app powered by Dzine.ai image styling, with Peecho as the fulf
 Users can:
 1. Upload an image
 2. Apply AI artistic styles via Dzine.ai
-3. Position and customize the styled image on a product canvas
-4. ✅ **Create custom Peecho products & checkout** (API working, integration pending)
+3. Choose product type & size on Peecho checkout
+4. ✅ **Create custom Peecho products & order** (Dynamic product selection via Peecho)
 
 ## Current State
 
 - ✅ Image upload & Dzine.ai style transformation
-- ✅ Interactive image editor (position, scale, crop)
-- ✅ Cropped image saved via serverless function
-- ✅ **Peecho API V3 Publication Creation** (endpoint confirmed, returns functional checkout links)
-- 🔜 Integration into app workflow (Netlify function + React component)
+- ✅ Image saved to Cloudinary
+- ✅ **Peecho API V3 Publication Creation** (dynamic product selection at checkout)
+- ✅ Peecho handles product/size filtering based on user's location & image dimensions
+- ✅ Full integration ready for production
 
 ## Setup
 
@@ -48,17 +48,27 @@ netlify deploy --prod
 
 **Status:** ✅ READY FOR PRODUCTION
 
-### Canvas Product
+### How It Works
 
-✅ **41x51cm / 16x20" Stretched Canvas [Black Wrap]**
-- Offering ID: `6968193`
-- Price: €32
-- Hardcoded in: `netlify/functions/createPeechoPublication.mjs`
+**Key Discovery:** Peecho automatically filters products & sizes based on:
+- 📍 User's shipping location (Hungary → limited options, Germany/USA → more choices)
+- 📐 Image dimensions (Peecho only shows compatible sizes)
+- No preview needed (user accepts this in MVP)
 
 ### Flow
 ```
-User uploads image → Dzine styles it → Crop to canvas → Save to Cloudinary → Create Peecho Publication → Checkout (Canvas locked in)
+User uploads image → Dzine styles it → Save to Cloudinary → Create Peecho Publication → 
+Redirect to Peecho Checkout
+  ├─ User selects location (Hungary/Germany/USA/etc.)
+  ├─ Peecho filters available products
+  ├─ User selects product + size
+  ├─ User enters shipping address
+  └─ User pays
+
+Peecho handles everything else (printing, fulfillment, shipping)
 ```
+
+**Note:** No image editor/cropper in current flow. Peecho's filtering handles size compatibility.
 
 Ready to deploy! 🚀
 
@@ -180,4 +190,62 @@ CLOUDINARY_UPLOAD_PRESET=peecho-dzine-app-upload-preset
 - [ ] Go live!
 
 **Ready to deploy!** All code in place. 🚀
-*Note: Canvas mobile cropping experience needs work (future sprint)*
+
+---
+
+## 📦 Archived Tools & Components
+
+As the app evolved, some tools became unnecessary. They're preserved in `/archive/` for future reference.
+
+### Image Adjustment & Crop Tool
+**Location:** `archive/image-adjustment-crop-tool/`
+
+**What:** Interactive canvas editor for positioning and cropping images to a printable area.
+
+**Includes:**
+- `ImageEditor.js` - React component (drag/resize handles, aspect ratio lock)
+- `canvas16x20.json` - Printable area corner coordinates for 16x20" canvas
+- `canvas16x20.png` - Product template image
+
+**Why archived:** Peecho's checkout now handles product selection & size filtering. Users no longer need to crop in-app; Peecho shows only compatible sizes based on their image dimensions and shipping location.
+
+**When to resurrect:**
+- If adding custom canvas/frame products with specific printable areas
+- If you want pre-checkout image preview/adjustment
+- Mobile-optimized version needed (current drag/resize is unwieldy on touch)
+
+---
+
+### Test Utilities & Debug Scripts
+**Location:** `archive/test-utilities/`
+
+**What:** Collection of test scripts, debug utilities, and documentation from development.
+
+**Includes:**
+- `test-*.js` / `test-*.mjs` - Various Peecho API, Cloudinary, and flow tests
+- `debug-function-payload.js` - Debug payload inspection
+- `inspect-page.js` - Page inspection utility
+- Documentation: `BEFORE_YOU_RUN_TEST.md`, `TEST_MANIFEST.md`, `ROOT_CAUSE_ANALYSIS.md`, etc.
+
+**Why archived:** These were used to investigate Peecho API behavior, Cloudinary uploads, and checkout flows. Now that the integration is complete, they're not needed but kept for reference.
+
+**When to use:**
+- Debugging API issues
+- Testing new Peecho features
+- Understanding how the integration was built
+
+---
+
+### Deprecated Components
+**Location:** `archive/deprecated-components/`
+
+**What:** React/code components that are no longer used.
+
+**Includes:**
+- `AddressForm.js` - Shipping address form (Peecho now handles this in their checkout)
+
+**Why archived:** Original design had an address form step before Peecho checkout. Simplified flow eliminates this; Peecho collects shipping details at their checkout.
+
+**When to use:**
+- If reverting to custom address collection (advanced customization)
+- Reference for multi-step form patterns

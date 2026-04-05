@@ -71,6 +71,7 @@ function App() {
   const resultRef = useRef(null);
   const styleSectionRef = useRef(null);
   const orderButtonRef = useRef(null);
+  const processingCardRef = useRef(null);
   const isFirstResult = useRef(true);
 
   const processingMessages = [
@@ -93,9 +94,12 @@ function App() {
       setProcessingMessageIndex(0);
       return;
     }
+    setTimeout(() => {
+      processingCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
     const interval = setInterval(() => {
       setProcessingMessageIndex(prev => Math.min(prev + 1, processingMessages.length - 1));
-    }, 5000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [isProcessing]);
 
@@ -621,7 +625,7 @@ function App() {
               )}
 
               {isProcessing && (
-                <div className="processing-card">
+                <div className="processing-card" ref={processingCardRef}>
                   <div className="processing-spinner"></div>
                   <p className="processing-message" key={processingMessageIndex}>
                     {processingMessages[processingMessageIndex]}

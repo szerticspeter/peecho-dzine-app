@@ -64,14 +64,14 @@ export async function handler(event) {
     };
   }
 
-  console.log("Uploading image to Cloudinary...");
+  const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://');
+  console.log(`Uploading image to Cloudinary (${isUrl ? 'URL fetch' : 'base64 upload'})...`);
 
   try {
     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-    // Use FormData for proper multipart/form-data encoding (required by Cloudinary for file uploads)
     const formData = new FormData();
-    formData.append('file', imageData);
+    formData.append('file', imageData);  // Cloudinary accepts both base64 and URLs in 'file'
     formData.append('upload_preset', uploadPreset);
     formData.append('folder', 'dzine-orders');
 

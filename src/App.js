@@ -402,7 +402,8 @@ function App() {
                 const proxiedUrls = resultUrls.map(url =>
                   `/.netlify/functions/proxyImage?url=${encodeURIComponent(url)}`
                 );
-                setResult({ urls: proxiedUrls, selectedUrl: proxiedUrls[0] });
+                // Store original Dzine URLs alongside proxied ones for ordering
+                setResult({ urls: proxiedUrls, selectedUrl: proxiedUrls[0], originalUrls: resultUrls });
                 console.log('Successfully retrieved result image URLs:', resultUrls);
               } catch (e) {
                 console.error('Invalid URL format in results:', resultUrls);
@@ -580,7 +581,12 @@ function App() {
                     ))}
                   </div>
                   <button 
-                    onClick={() => handleOrderNow(result.selectedUrl)}
+                    onClick={() => {
+                      // Find the original Dzine URL for the selected proxied URL
+                      const selectedIndex = result.urls.indexOf(result.selectedUrl);
+                      const originalUrl = result.originalUrls?.[selectedIndex] || result.selectedUrl;
+                      handleOrderNow(originalUrl);
+                    }}
                     className="create-product-button"
                     disabled={isOrdering}
                   >

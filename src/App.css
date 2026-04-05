@@ -177,14 +177,13 @@ body {
   .step-image-styles {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 4px 0;
+    justify-content: space-between;
+    height: 160px;
   }
 
   .style-img {
     width: 33%;
-    height: auto;
-    aspect-ratio: 1 / 1;
+    height: 46px;
     object-fit: cover;
     border-radius: 6px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.15);

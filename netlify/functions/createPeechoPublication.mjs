@@ -4,11 +4,12 @@
  *
  * Flow:
  *   1. Receive { imageUrl, title?, currency?, locale? } from frontend
- *   2. POST https://www.peecho.com/rest/v3/publication/create
+ *   2. POST https://www.peecho.com/rest/v3/publication/create with Canvas offering locked in
  *   3. Return { checkoutUrl } → frontend redirects user
  */
 
 const PEECHO_ENDPOINT = 'https://www.peecho.com/rest/v3/publication/create';
+const CANVAS_OFFERING_ID = 6968193;  // 41x51cm / 16x20" Stretched Canvas [Black Wrap]
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -66,6 +67,7 @@ export async function handler(event) {
     currency,
     locale,
     enableSecureCheckout: true,
+    fixedOfferingId: CANVAS_OFFERING_ID,  // Lock to 41x51cm / 16x20" Canvas
     order: {
       reference: `dzine-${Date.now()}`,
       product: {
@@ -75,8 +77,8 @@ export async function handler(event) {
             src: imageUrl,
             pages: 1,
             dimensions: {
-              width: 210,
-              height: 297,
+              width: 41,    // cm (41x51cm canvas)
+              height: 51,
             },
           },
         },

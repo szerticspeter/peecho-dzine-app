@@ -46,22 +46,21 @@ netlify deploy --prod
 
 ## Peecho Integration 
 
-**Status:** ✅ API Working | 🔜 Canvas MVP Ready
+**Status:** ✅ READY FOR PRODUCTION
 
-### MVP: Canvas-Only Product
+### Canvas Product
 
-The app is ready for Canvas! Just need:
-1. Find Canvas `offering_id` in Peecho dashboard (Settings > Products)
-2. Set it in `netlify/functions/createPeechoPublication.mjs` (env var `PEECHO_CANVAS_OFFERING_ID`)
-3. Deploy
-4. Test end-to-end
+✅ **41x51cm / 16x20" Stretched Canvas [Black Wrap]**
+- Offering ID: `6968193`
+- Price: €32
+- Hardcoded in: `netlify/functions/createPeechoPublication.mjs`
 
 ### Flow
 ```
-User uploads image → Dzine styles it → Crop to canvas → Save to Cloudinary → Create Peecho Publication → Checkout
+User uploads image → Dzine styles it → Crop to canvas → Save to Cloudinary → Create Peecho Publication → Checkout (Canvas locked in)
 ```
 
-**Detailed setup:** See **[PEECHO_API.md](./PEECHO_API.md)**
+Ready to deploy! 🚀
 
 ---
 
@@ -156,13 +155,14 @@ CLOUDINARY_UPLOAD_PRESET=peecho-dzine-app-upload-preset
 ✅ Deployed to production successfully
 ✅ Verified Cloudinary works end-to-end with real image
 
-### MVP Checklist
+### Deployment Checklist
 
-- [ ] Find Canvas offering_id in Peecho dashboard
-- [ ] Set `PEECHO_CANVAS_OFFERING_ID` environment variable (Netlify)
-- [ ] Update `createPeechoPublication.mjs` to use `fixedOfferingId`
+- [x] Find Canvas offering_id in Peecho dashboard
+- [x] Set `fixedOfferingId` in `createPeechoPublication.mjs`
+- [x] Configure product dimensions (41x51cm)
+- [ ] Deploy to Netlify (`netlify deploy --prod`)
 - [ ] Test: Image → Dzine → Canvas → Order
-- [ ] Verify checkout shows only Canvas options
-- [ ] Deploy to production
+- [ ] Verify checkout shows Canvas options
+- [ ] Go live!
 
-**All code already in place** — just needs offering_id configuration!
+**Ready to deploy!** All code in place. 🚀

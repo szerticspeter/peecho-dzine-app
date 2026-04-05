@@ -1,0 +1,1245 @@
+FORMAT: 1A
+HOST: https://test.www.peecho.com/rest/v3/
+
+# Peecho API v3
+
+Peecho’s print API enables you to sell digital content as high quality print on demand products. 
+
+Our RESTful API uses standard HTTP methods, authentication protocols and response codes. It accepts data in application/json format and returns all responses in JSON.
+
+<div style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; background-color: #f9f9f9;">
+
+<strong>Current version:</strong> API v3 (this documentation)
+
+<strong>Previous version:</strong> <a href="https://peechoapiv2.docs.apiary.io/#">API v2 Documentation</a><p> Note: API v2 is deprecated and will be phased out, though it remains functional for existing integrations.</p> 
+</div>
+
+
+
+## Getting started 
+<p>Our <a href="https://www.peecho.com/blog/how-to-place-your-first-peecho-api-order" target="_blank">step-by-step guide</a> walks you through placing your first API order, covering everything from authentication to submitting orders to our print network.</p>
+
+## Environments
+<p>We have two environments: <strong>Test</strong> and <strong>Prod</strong>.</p>
+
+<h4>Test</h4>
+<p>Our testing environment allows you to prepare your integration for production.
+
+Orders placed in the test environment <strong> cannot be physically shipped</strong>
+ to you or your customers, and you will <strong>not be charged</strong> for using it.
+ 
+ To get started, create an account in the test environment to receive your API key specifically for testing.</p>
+<p><strong>Test API:</strong> <a href="https://test.www.peecho.com" target="_blank">https://test.www.peecho.com</a></p>
+
+<h4>Prod</h4>
+<p>Prod is our <strong>production</strong> environment. Any orders placed here <strong>must be paid for prior to being produced and shipped</strong>.
+
+
+To pay for orders, you can purchase credits through your Peecho account.
+</p>
+<p><strong>Live dashboard:</strong> <a href="https://www.peecho.com" target="_blank">https://www.peecho.com</a></p>
+
+## Authentication
+<p>Your API key provides access to the Peecho API. You can find your keys on your dashboard under <strong>Settings > API.</strong></p>
+The <strong>Merchant API key</strong> is used by most endpoints for authorization. Some endpoints also require a <strong>Secret key</strong>, which is used for SHA-256 encoding information to provide extra security.</li>
+</ul>
+<!-- section: Orders -->
+
+## Peecho orders
+<p>Peecho orders support multiple items as long as they can be fulfilled by the same production location. This is usually the case for products from the same category. However, you can check if different products can be grouped by using the Quote endpoint (inside the <strong>Check products/offerings endpoint)</strong>. This will return the products that can be ordered together and the ones that need to be quoted and ordered separately.</p>
+
+<p>Creating an order can be done using a single API request, supplying all relevant information. After being created, an API order remains in <strong>Open</strong> state. In this state, you can still update details like the address and print files until you pay for the order. Once paid, Peecho will process the order, prepare the items for production and submit the order to one of our print facilities. <p>
+
+
+<h3>General order flow</h3>
+<ol>
+  <li>Order  and items created
+  <li>Payment submitted
+  <li>Print facility allocated 
+  <li>Item files processed 
+  <li>Item ready to be printed 
+  <li>Order submission to facility
+  <li>Production
+  <li>Shipping 
+</ol>
+
+## Order status
+<p>The print on demand order goes through a lifecycle of fulfillment with different stages. For each stage, there is an associated order status.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NO_PRINT_FACILITY_ERROR</td>
+      <td>No production facility has been assigned to the order.</td>
+    </tr>
+    <tr>
+      <td>OPEN</td>
+      <td>The order has been created but not yet paid.</td>
+    </tr>
+    <tr>
+      <td>PAID</td>
+      <td>The order has been successfully paid and confirmed.</td>
+    </tr>
+    <tr>
+      <td>PAYMENT_ERROR</td>
+      <td>There was a problem processing the payment, often due to insufficient credit or another issue.</td>
+    </tr>
+    <tr>
+      <td>CHECK_ORDER</td>
+      <td>The order is being reviewed manually, either by the Peecho team or by you, typically due to missing address details or high value.</td>
+    </tr>
+    <tr>
+      <td>HOLD_ORDER_CHECK</td>
+      <td>The order is on hold, awaiting a response from the client.</td>
+    </tr>
+    <tr>
+      <td>WAITING_TO_DISPATCH</td>
+      <td>The order is validated and paid, waiting for its items to be processed.</td>
+    </tr>
+    <tr>
+      <td>IN_PRINT_QUEUE</td>
+      <td>The order is queued for printing. At this stage, it can no longer be modified.</td>
+    </tr>
+    <tr>
+      <td>SUBMITTED</td>
+      <td>The order has been submitted to a production facility by the printer system.</td>
+    </tr>
+    <tr>
+      <td>SUBMISSION_ERROR</td>
+      <td>An error occurred while submitting the order to the production facility.</td>
+    </tr>
+    <tr>
+      <td>IN_PRODUCTION</td>
+      <td>The order is currently being produced.</td>
+    </tr>
+    <tr>
+      <td>PRODUCTION_ERROR</td>
+      <td>An error occurred during the production process.</td>
+    </tr>
+    <tr>
+      <td>SHIPPED</td>
+      <td>The order has been shipped to the customer.</td>
+    </tr>
+    <tr>
+      <td>CANCELLED</td>
+      <td>The order has been cancelled.</td>
+    </tr>
+    <tr>
+      <td>REFUNDED</td>
+      <td>The order has been refunded.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Item status
+<p>Each item within an order has its own item status, which reflects the current stage of the item in its processing lifecycle.</p>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>AWAITING_PAYMENT</td><td>The order has been created but not yet paid.</td></tr>
+    <tr><td>PENDING_COMPLETION</td><td>The item is waiting for files (applies to asynchronous orders created without files).</td></tr>
+    <tr><td>PING_BACK_ERROR</td><td>An error occurred while sending a pingback to your service.</td></tr>
+    <tr><td>QUEUED_FOR_PROCESSING</td><td>The file has been queued for processing.</td></tr>
+    <tr><td>CHECK_PROCESSING_ERROR</td><td>There was an issue processing the file. Peecho will review the issue and contact you if necessary.</td></tr>
+    <tr><td>PROCESSING</td><td>The file is currently being processed.</td></tr>
+    <tr><td>PROCESSED</td><td>The file was successfully processed. It will either be moderated (by you or Peecho) or sent directly to the printer.</td></tr>
+    <tr><td>CHECK_ITEM</td><td>The file requires moderation due to an issue. Review is needed by support or your team.</td></tr>
+    <tr><td>HOLD_ITEM_CHECK</td><td>The item is on hold and awaiting a client response.</td></tr>
+    <tr><td>PRINT_READY</td><td>The file was processed successfully and is ready for production.</td></tr>
+  </tbody>
+</table>
+
+## Peecho error codes
+<p>Error responses may contain a specific error code. Descriptions of the problem and suggested solutions can be found in the table below.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>APP_FORBIDDEN</td><td>Incorrect API key provided. Check your API key in the API section of any application in your dashboard.</td></tr>
+    <tr><td>APP_NO_COMP_DETAILS</td><td>Company details are required for tax calculations. Set them on your application's Settings page.</td></tr>
+    <tr><td>COLOR_INVALID</td><td>Invalid color format. Colors must be specified in hex format, e.g. #RRGGBB.</td></tr>
+    <tr><td>CURR_INVALID</td><td>Invalid currency code. Supported currencies include: USD, JPY, BGN, CZK, DKK, ILS, GBP, HUF, LTL, LVL, PLN, RON, SEK, CHF, NOK, HRK, RUB, TRY, AUD, BRL, CAD, CNY, HKD, IDR, INR, KRW, MXN, MYR, NZD, PHP, SGD, THB, ZAR, ISK.</td></tr>
+    <tr><td>FONT_INVALID</td><td>Unsupported font for spine text. Available fonts: Arial, Brandon, DarkCourier, Georgia, GochiHand, Helvetica, Tahoma, TimesNewRoman, Verdana.</td></tr>
+    <tr><td>INVALID_DATA</td><td>The request contains invalid or missing fields. This may involve format violations, invalid enum values or malformed data.</td></tr>
+    <tr><td>MERCH_INSUFFICIENT_BALANCE</td><td>Insufficient account balance. Visit your dashboard to manage payment methods or add credits.</td></tr>
+    <tr><td>MULTI_ORDER_INVALID_DATA</td><td>The selected products cannot be fulfilled by the same production facility.</td></tr>
+    <tr><td>NO_PF</td><td>No production facility is available to ship the selected product to the chosen country. Use the Offerings endpoint to check product availability by region.</td></tr>
+    <tr><td>OFF_MIN</td><td>The requested product has a minimum order quantity. Use the <code>/offering/list</code> endpoint to check product details.</td></tr>
+    <tr><td>OFF_NOT_FOUND</td><td>The requested product or offering was not found.</td></tr>
+    <tr><td>ORD_CANCEL_STATE</td><td>The order cannot be cancelled. This happens if it has already been sent to production (statuses: IN_PRINT_QUEUE, IN_PRODUCTION, SHIPPED) or if it was already cancelled or refunded. Check the status in the Dashboard or using the status endpoint.</td></tr>
+    <tr><td>ORD_DUPLICATE</td><td>The order reference must be unique per merchant, even across multiple applications.</td></tr>
+    <tr><td>ORD_FILES_STATE</td><td>Files can only be updated if the order is in the OPEN or PENDING_COMPLETION state. Check the status in the Dashboard or using the status endpoint.</td></tr>
+    <tr><td>ORD_MISS_ADDR</td><td>A shipping address must be set before payment. Use the Update address endpoint.</td></tr>
+    <tr><td>ORD_NO_PRINTER</td><td>The order hasn’t been assigned to a production facility. This usually means the address is missing or unsupported. Use the Offerings endpoint to check where a product can be produced.</td></tr>
+    <tr><td>ORD_PAID_STATE</td><td>Orders can only be marked as PAID if their current status is OPEN or PAYMENT_ERROR. Check the status in the Dashboard or using the status endpoint.</td></tr>
+    <tr><td>ORD_SECRET</td><td>Incorrect secret provided. It must be the SHA-256 hex-encoded value of your secret key joined with the order ID.</td></tr>
+    <tr><td>SPINE_ORDER_NOT_FOUND</td><td>No order found with the specified ID. If you’re calculating spine width for a future order, use the Spine endpoint instead.</td></tr>
+  </tbody>
+</table>
+
+## Peecho payment solutions
+<h4> Payment endpoint using credits</h4>
+<p>To pay for an API order, submit a request to the Payment endpoint. Before doing so, make sure you have enough credits in your account – credits are required to confirm and fulfill orders.</p>
+<p>You can purchase credits from your test dashboard by going to Settings > API > Credit > Buy Credit. The Peecho test environment supports various mock payment methods, including  <a href="https://docs.stripe.com/testing" target="_blank">Stripe testing cards.</a></p>
+<p>After acquiring credits and configuring your order, call the Order payment endpoint to confirm the order and send it to production.</p>
+
+
+<h4>Checkout</h4>
+<p><a href="https://www.peecho.com/solutions/checkout" target="_blank">Peecho's checkout</a> requires the creation of a product listing (publication). It provides an easy, cost-free way to sell print on demand products without needing your own webshop. The checkout is customizable and conversion-optimized, designed to help you start selling quickly with minimal setup.</p>
+
+<h4>Coupon codes</h4>
+<p>Customers can apply coupon codes during checkout. You can create these coupons using the credits in your Peecho account. The coupon value will be deducted from your available credit balance.</p>
+
+## Webhooks
+<p>You can set callback URLs in your application settings under <strong>Settings > API > Webhooks</strong>.</p>
+
+## Status update URL
+
+<p>Triggered whenever an order changes its status.
+
+
+Signature is the SHA256 encoded value of the secretKey+order_id string
+
+Method: <strong>POST</strong>
+
+Content: <strong>application/json</strong>
+
+Payload:
+{
+ "signature": "4bf65a3ffc022f0070babee6540048dfc1a3faad270f62f8084fe66f94ebf8fd",
+   <p> "order_id": "1234",</p>
+   <p> "order_reference": "LL1123",</p>
+   <p> "old_status": "IN_PRODUCTION",</p>
+   <p> "new_status": "SHIPPED",</p>
+   <p> "tracking_code": "XXXXXXX1234",</p>
+   <p> "tracking_url": "https://nolp.dhl.de/nextt-online-public/en/search?piececode=XXXXXXX1234"
+}</p>
+
+
+## Postman collection
+You can access our Postman collection below:
+
+[Download Postman Collection](https://documenter.getpostman.com/view/38064241/2sB2qdi1ZH#0db0f1b4-a511-4531-a125-85dd6eed3b69)
+
+### Endpoints [/requests]
+
+## Create Order API
+
+## Data Structures
+
+### Order (object)
+
++ merchant_api_key: ABCD1234XXXX (string, required) - Your API key for authentication.
++ currency: EUR (string, required) - Currency code (e.g. EUR, USD).
++ item_details: (ItemDetails, required)
++ address_details (AddressDetails, required) - details about shipment and billing
++ order_reference: LL1123 (string, optional) - Your internal reference for the order.
++ purchase_order: Po1234 (string, optional) - Optional purchase order reference.
++ cost_centre: (string, optional) - A specific department, location, or function that is assigned responsibility for the print costs
++ billing_entity_id: (number, optional) - id of the billing entity
+
+### AddressDetails (object)
+
++ email_address (string, required) - email of the customer. They will receive order confirmation and shipping details on this address
++ shipping_address (ShippingAddress, required) - shipping address
++ billing_address (ShippingAddress, optional) - billing address
+
+### ShippingAddress (object)
+
++ first_name (string, required)
++ last_name (string, required)
++ address_line_1 (string, required) - street and number or POBox
++ address_line_2 (string, required) - building, apartment, other
++ zip_code (string, required)
++ city (string, required)
++ state (string)
++ country_code (string, required) - ISO Code 2, e.g "US", "NL"
++ phone_number (string, optional)
++ company_name (string, optional)
++ vat_number (string, optional)
++ vat_country_code (string, optional)
+
+### ItemDetails (object)
++ title (string, optional)
++ item_reference (string, optional)
++ offering_id (number, required) - The product ID from your test account
++ quantity (number, required)
++ file_details (FileDetails, required)
+
+### FileDetails (object)
+
++ content_url (string, required) - Source file to be printed. 
++ cover_url (string) - Cover file should contain in 1 image: back cover, spine and front cover. If cover is NOT sent as a separate file, it will be formed from the first and last pages of the content file and the spine
++ spine_details (SpineDetails) - You can provide an URL to the spine OR give us texts and fonts and we build it for you OR use only a color set in your account (default is white) 
++ content_width (number, required) - width of the content file
++ content_height (number, required) - height of the content file
++ number_of_pages (number, required) - Number of pages of cover and content
+
+### SpineDetails (object)
+
++ custom_spine_url (string) - Spine URL. If you already have a spine generated for the file, use this.
++ dynamic_spine_details (DynamicSpineDetails) - Based on this object we generate the spine for you. Default spine is white with no text if no details provided. You can change the default colour in your account.
+
+### DynamicSpineDetails (object)
+
++ text_font: Arial, Brandon, DarkCourier, Georgia, GochiHand, Helvetica, Tahoma, TimesNewRoman, Verdana (enum)
++ text_size (number) - Font size for the text
++ text_colour (string) - in of the hex format: #RRGGBB
++ background_colour (string) - in of the hex format: #RRGGBB
++ text_center (string) - Text in the center of the spine
++ text_bottom (string) - Text at the bottom of the spine
++ text_top (string) - Text at the top of the spine
+
+### PaymentRequest (object)
+
++ order_id (number, required) - id of the order to be paid
++ merchant_api_key (string, required) - API key of your account
++ secret (string, required) - SHA-256 encoded value of the string formed by putting together your secret key and the order number e.g for secretKey="SECRETABCD" and orderId=1234, you have SHA-256("SECRETABCD1234") = "4bf65a3ffc022f0070babee6540048dfc1a3faad270f62f8084fe66f94ebf8fd"
+
+### UpdateAddressRequest (object)
+
++ order_id (number, required) - id of the order to be paid
++ merchant_api_key (string, required) - API key of your account
++ address_details (AddressDetails, required) - If the order was already paid you can no longer change the country or the state!
+
+### SetFilesRequest (object)
+
++ order_id (number, required) - id of the order missing files
++ merchant_api_key (string, required) - API key of your account
++ file_details (FileDetails, required) - URLs and configurations for the files to be printed
+
+### StatusResponse (object)
+
++ order_id (number)
++ order_state (enum) - The order status listened on the section Peecho Orders of this documentation
++ moderation_reason (string) - If the order is in MODERATION state, this will state the reason
++ created_date (string)
++ currency (string)
++ merchant_order_reference
++ tracking_code (string) - after order is shipped
++ tracking_url (string) - after order is shipped
++ order_price_data (OrderPriceData)
++ item_price_data (ItemPriceData)
++ address_details (ReturnedAddressDetails)
++ fulfilment_location (FulfilmentLocation)
+
+### OrderPriceData (object)
+
++ total_retail_product_price_ex_taxes (string)
++ total_retail_shipping_ex_taxes (string)
++ total_retail_price_ex_taxes (string)
++ total_retail_price_inc_taxes (string)
++ retail_product_taxes (RetailProductTaxes)
++ retail_shipping_taxes (RetailShippingTaxes)
++ total_wholesale_product_price_ex_taxes (string)
++ total_wholesale_shipping_ex_taxes (string)
++ total_wholesale_price_ex_taxes (string)
++ total_wholesale_price_inc_taxes (string)
++ wholesale_product_taxes (WholesaleProductTaxes)
++ wholesale_shipping_taxes (WholesaleShippingTaxes)
+
+### RetailProductTaxes (object)
+
++ tax_name
++ tax_percentage
++ amount
+
+### RetailShippingTaxes (object)
+
++ tax_name
++ tax_percentage
++ amount
+
+### WholesaleProductTaxes (object)
+
++ tax_name
++ tax_percentage
++ amount
+
+### WholesaleShippingTaxes
+
++ tax_name
++ tax_percentage
++ amount
+
+### ItemPriceData (object)
+
++ item_id (string)
++ number_of_pages (number)
++ offering_id
++ publication_id - product listing id
++ quantity
++ retail_product_price
++ retail_product_taxes (RetailProductTaxes)
++ retail_shipping_price
++ retail_shipping_taxes (RetailShippingTaxes)
++ wholesale_product_price
++ wholesale_product_taxes (WholesaleProductTaxes)
++ wholesale_shipping_price 
++ wholesale_shipping_taxes (WholesaleShippingTaxes)
++ total_wholesale_price_ex_taxes
++ total_wholesale_price_inc_taxes
+
+### ReturnedAddressDetails (object)
+
++ first_name
++ last_name
++ address_line_1
++ address_line_2
++ country_code (string, required)
++ zip_code (string, required)
++ city (string, required)
++ state (string)
+
+### FulfilmentLocation (object)
+
++ country_code
++ lab_code
+
+### PricingDto (object)
+
++ currency (string) - currency code for price presentation e.g "EUR" or "USD"
++ price (number) - base price
++ pricePerPage (number) - price for each extra page
+
+### QuoteRequest (object)
++ apiKey (required, number) - API key of your account
++ countryCode (required, string) - ISO 2 code of the country where the product will be shipped
++ state (optional, string) - State where the order will be shipped. Optional
++ currency(optional, string) - Currency in which to show the prices. Default EUR
++ items (required, array[QuoteItemDto]) - Quoted product items
+
+### QuoteItemDto (object)
++ offeringId (required, number) - Id of the offering in your account
++ numberOfPages(optional, number) - Number of pages of the content file. If not specified or too high/low the minimum/maximum for the product will be used for the quote
++ quantity(required, number) - Number of copies
+
+### AvailableCountriesForOfferingsRequest (object)
++ merchantApiKey (string, required)
++ offeringsId (array[number])
+
+### BillingEntityRequest (object)
+
++ api_key (string, required) - API key of your account
++ parentEntityId (number) - Parent billing entity id. If you leave this empty, you create a parent billing entity.
++ firstName (string, required)
++ lastName (string, required)
++ companyName (string, required)
++ addressLine1 (string, required) - Street and number or POBox
++ addressLine2 (string) - Building, apartment, other
++ zipCode (string, required)
++ state (string)
++ city (string)
++ countryCode (string, required) - ISO Code 2, e.g "US", "NL"
++ vatNumber (string)
++ chamberOfCommerce (string)
++ phoneNumber (string)
++ emailAddresses (array[string], required) - Array of at least one email address
+
+### CreatePublication (object)
+
++ apiKey (string) - API key of your account
++ order (OrderDto) - The merchant reference number
++ customSpine (string) - Here you can provide an URL to the spine (OR use the following fields to give us texts and fonts and we build it for you)
++ spineColorHex (string) - 
++ spineText (string) - 
++ spineTextTop (string) -
++ spineTextBottom (string) -
++ spineTextSize (number) -
++ spineTextColor (string) -
++ spineFontFamily: Arial, Brandon, DarkCourier, Georgia, GochiHand, Helvetica, Tahoma, TimesNewRoman, Verdana (enum)
++ currency (string) -  currency code for price display e.g "EUR" or "USD"
++ locale: en, es, nl, de, fi, sv, it, fr, pl (enum)
++ filterSize
++ filterColour
++ filterCategory
++ fixedOfferingId
++ fixedOfferingPrice
++ redirect (RedirectDto) -
++ enableSecureCheckout (boolean) - Send a 'true' value if you want to enable the secure checkout enabling only authorised users to access it. This will make the endpoint return a secure_publication_id and a token. Access the checkout using this endpoint: https://test.www.peecho.com/checkout/print/en/{secure_publication_id}?token={token}.
++ secureCheckoutExpirationDate (string) - Send an expiration date in the CET timezone if you want the secure checkout to expire after a while, in this format 'dd-MM-yyyy HH:mm:ss'.
+
+### OrderDto (object)
++ reference (string) - If this is completed, any order for this product listing (publication) will have this as a reference so you can recognize the order in your internal system
++ product (ProductDto)
+
+### ProductDto (object)
++ title (string) - Title of this product listing (publication)
++ source (SourceDto) - The file of the 
++ thumbnail (ThumbnailDto) - thumbnail details that will appear in checkout
+
+### SourceDto (object)
++ file (FileDto)
+
+### FileDto (object)
++ src (string) - source file location
++ coverSrc (string) - cover file location
++ pages (number) - number of pages
++ dimensions (DimensionsDto) - dimensions details
+
+### DimensionsDto (object)
++ width (number)
++ height (number)
+
+### ThumbnailDto (object)
++ src (string) - source file location
++ width (number)
++ height (number)
+
+### RedirectDto (object)
++ cancellation (RedirectCancellationDto)
++ error (RedirectErrorDto)
++ thankyou (RedirectThankYouDto) 
+
+### RedirectCancellationDto (object)
++ href (string) - URL to the custom message/page to show when the checkout session is canceled.
+
+### RedirectErrorDto (object)
++ href (string) - URL to the custom message/page when there is an checkout error
+
+### RedirectThankYouDto (object)
++ href (string) - URL to the custom message/page when the purchase is successful.
+
+## Create a new order [POST /order]
+The Order object contains all of the data needed to create and manage an order. Most fields remain static after creation, while dynamic fields such as status and shipments update as the order progresses through its lifecycle.</a>
+
+
+<ul>
+  <li><strong>Create order with files</strong> – You can create an order that already includes the file(s) by specifying the file URL in the file_details parameter. The order will immediately proceed to file processing once payment is submitted.
+</li>
+  <li><strong>Create order without files</strong> – You can create an order without attaching the files upfront and send them later asynchronously. This method uses the same parameters as creating an order with files, but you leave the file_details field empty.
+</li>
+<ul>
+
++ Attributes (Order)
+    
++ Request (application/json)
+{
+    "merchant_api_key": "API_KEY",
+    "purchase_order" : "",
+    "currency": "EUR",
+    "item_details": [
+        {
+            "item_reference" : "hardcover_22",
+            "offering_id": 233309,
+            "quantity": 3,
+            "file_details": {
+                "content_url": "https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/wall-tiles-test.pdf",
+                "content_width": 210,
+                "content_height": 29.7,
+                "number_of_pages": 80,
+                "spine_details":{
+                    "dynamic_spine_details": {
+                        "text_font":"Arial",
+                        "text_size":10,
+                        "text_colour":"#77493f",
+                        "text_top":"top text",
+                        "text_center":"center text",
+                        "text_bottom":"bottom text"
+                    }
+                }
+            }
+        },
+        {
+            "item_reference" : "hardcover_23",
+            "offering_id": 233309,
+            "quantity": 2,
+            "file_details": {
+                "content_url": "https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/wall-tiles-test.pdf",
+                "content_width": 210,
+                "content_height": 29.7,
+                "number_of_pages": 80,
+                "spine_details":{
+                    "custom_spine_url":"https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/wall-tiles-test.pdf"
+                }
+            }
+        }
+    ],
+    "address_details": {
+        "email_address": "joshua@designy.com",
+        "shipping_address": {
+            "first_name": "Joshua",
+            "last_name": "Grim",
+            "address_line_1": "Test",
+            "address_line_2": 1,
+            "zip_code": "35100",
+            "city": "Florida",
+            "state": null,
+            "country_code": "ARE"
+        }
+    }
+
++ Response 201 (application/json)
+
+        {"order_id": 1234}
+
++ Response 400 (application/json)
+
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/",
+    "details": "Item reference: 'postcard_22' is already assigned to another order",
+    "timestamp": "2025-05-27T11:04:50.174882"
+}
+
++ Response 400 (application/json)
+
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/",
+    "details": "The requested products cannot be produced at one single printer!",
+    "timestamp": "2025-05-27T11:06:03.27449",
+    "custom_code": "MULTI_ORDER_INVALID_DATA"
+}
+        
++ Response 400 (application/json)
+
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/",
+    "details": "All offerings must belong to the same application MULTI_ORDER_INVALID_DATA",
+    "timestamp": "2025-05-27T11:09:40.893502"
+}
+
++ Response 400 (application/json)
+
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/",
+    "details": "Required quantity: 0 is lower than the minimum quantity of: 1!",
+    "timestamp": "2025-05-27T11:11:08.251651",
+    "custom_code": "OFF_MIN"
+}
+
+
++ Response 404 (application/json)
+
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/",
+    "details": "This currency: CURRENCY is not available!",
+    "timestamp": "2025-05-28T15:25:24.199907",
+    "custom_code": "CURR_INVALID"
+}
+
+## Order payment [POST /order/payment]
+Submitting payment confirms the order and sends it to the production facility. Once paid, the order enters the fulfillment flow and can no longer be modified.
+
++ Attributes (PaymentRequest)
++ Response 200 (application/json)
+{
+ "order_state": "PAID"
+}
+
++ Response 401 (application/json)
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/payment",
+    "details": "Incorrect secret!",
+    "timestamp": "2025-05-26T16:24:22.199102",
+    "custom_code": "ORD_SECRET"
+}
+
++ Response 401 (application/json)
+{
+    "url": "http://test.www.peecho.com/rest/v3/order/payment",
+    "details": "Incorrect merchantApiKey!",
+    "timestamp": "2025-05-26T16:25:22.658005",
+    "custom_code": "APP_FORBIDDEN"
+}
+
++ Response 409 (application/json)
+{
+ "url": "https://test.www.peecho.com/rest/v3/order/payment",
+  "details": "Credit balance is insufficient to pay the order. Please buy credit and try again!",{  "custom_code": "ORD_SECRET",
+  "timestamp": "2020-10-19T15:44:41.944"
+}
+
++ Response 409 (application/json)
+{
+ "url": "https://test.www.peecho.com/rest/v3/order/payment",
+  "details": "Current order state: IN_PRINT_QUEUE does not allow the order to be set to paid!",
+  "custom_code": "ORD_PAID_STATE",
+  "timestamp": "2020-10-19T15:44:41.944"
+}
+
++ Response 409 (application/json)
+{
+ "url": "https://test.www.peecho.com/rest/v3/order/payment",
+  "details": "URL is either missing, invalid or not accessible: https://www.clienthost.com/content.pdf",
+  "timestamp": "2020-10-19T15:44:41.944"
+}
+
++ Response 409 (application/json)
+{
+ "url": "https://test.www.peecho.com/rest/v3/order/payment",
+  "details": "Order with id: 34785 does not have an address set or the country field is missing",
+  "custom_code": "ORD_MISS_ADDR",
+  "timestamp": "2020-10-19T15:44:41.944"
+}
+
+
+## Update address and customer details [POST /order/address]
+Update the shipping address or customer details for an existing unpaid order. Once the order is paid, you can no longer change the country or state.
+
++ Attributes (UpdateAddressRequest)
+
++ Request (application/json)
+
++ Response 409 (application/json)
+{
+ "url": "https://test.www.peecho.com/rest/v3/order/address",
+  "details": "Current order state: SHIPPED does not allow the address to be altered. Please contact support@peecho.com!",
+  "timestamp": "2020-10-19T17:12:57.091"
+}
+
+## Send files asynchronously [POST /order/files]
+Set files for an existing order. This is only allowed if the item is in the PENDING_COMPLETION state. <a href="https://www.example.com" target="_blank">Check how to set up your file(s).</a>
+
++ Attributes (SetFilesRequest)
+    
++ Response 200 (application/json)
+OK
+
++ Response 409 (application/json)
+{
+ "url": "https://test.www.peecho.com/rest/v3/order/files",O  "details": "Current order state: IN_PRODUCTION does not allow the files to be altered!",K  "timestamp": "2020-10-19T17:12:57.091",
+  "custom_code": "ORD_FILES_STATE"
+}
+
+# Get details of an existing order [/details]
+
+## Get details of an order [GET /order/details{?merchantApiKey,orderId,orderReference}]
+Retrieve the status, pricing and other information for an existing order.
+
+
++ Parameters
+    + merchantApiKey (required, String, `ABCD1234XXXX`)
+    + orderId (required, number, `1234`) - Peecho order id received after its creation
+    + orderReference(optional, String, `LL1123`)...Order reference mentioned in the create request
+    
++ Response 201 (application/json)
+
+    + Attributes (StatusResponse)
+
+# Get spine width for an already placed order [/spine]
+Calculate the spine width for an existing order. This applies only to asynchronous print workflows.
+
+
+## Calculate the spine width [GET /order/spine] 
+
++ Parameters
+    + merchantApiKey (required, String, `ABCD1234XXXX`)
+    + orderId (required, Number) - Peecho order id received after its creation
+
++ Response 201 (application/json)
+
+    + Body
+
+            {"spineWidth":23.0}
+
+
++ Response 404 (application/json)
+
+    + Body
+        
+            {"url": "https://test.www.peecho.com/rest/v3/order/spine","details": "Order with id: 1234 does not have a production facility assigned yet!","custom_code": "ORD_NO_PRINTER","timestamp": "2020-10-19T15:29:30.48"}        
+        
+    
++ Request (application/json)
+
+# Check products/offerings [/products]
+
+## List products and offerings [GET /offering/list]
+In the Peecho dashboard under Settings, you can find all of the products that Peecho offers. All products set as active in your account can be queried using the offering API.
+The ID that you find under the product name is the offering ID. The endpoint returns the product catalog ID and its attributes.
+
++ Parameters
+    + merchantApiKey (required, Number, `ABCD1234XXXX`)
+    + countryIsoCode2 (optional, String, 'NL')...Only return offerings that are available in this country
+    + subCategoryFilter (optional, enum) - Filter offerings by subCategory. Use subCategory code (GET /rest/v3/categories to get subCategory codes)
+    + categoryFilter (optional, enum) - Filter offerings by category. Use category code (GET /rest/v3/categories to get category codes) 
+    + currency(optional, String, `USD`)...Currency in which to show the prices. The default is EUR
+    
++ Request (application/json)
+
++ Response 200 (application/json)
+
+
++ Body
+
+{
+    "BO": {
+        "SC": [
+            {
+                "id": 271357,
+                "name": "Softcover A4 Autoboekjes (landscape)",
+                "paperType": "Matte",
+                "catalogueItemCode": "AU-mag-M-l",
+                "minimumQuantity": 1,
+                "minNumberOfPages": 20,
+                "maxNumberOfPages": 800,
+                "dimensionWidth": 297,
+                "dimensionHeight": 210,
+                "dynamicSize": true,
+                "minDimensionWidth": 210,
+                "minDimensionHeight": 148,
+                "pricingDto": {
+                    "currency": "EUR",
+                    "price": 596,
+                    "pricePerPage": 4
+                }
+            },
+            {
+                "id": 271408,
+                "name": "Softcover A4 portrait 150 GSM (portrait)",
+                "paperType": "Matte",
+                "catalogueItemCode": "AB-sft-M-p",
+                "minimumQuantity": 1,
+                "minNumberOfPages": 20,
+                "maxNumberOfPages": 300,
+                "dimensionWidth": 210,
+                "dimensionHeight": 297,
+                "dynamicSize": false,
+                "minDimensionWidth": 100,
+                "minDimensionHeight": 100,
+                "pricingDto": {
+                    "currency": "EUR",
+                    "price": 411,
+                    "pricePerPage": 18
+                }
+            },
+            {
+                "id": 272206,
+                "name": "Softcover 21x21 150 gsm (square)",
+                "paperType": "Matte",
+                "catalogueItemCode": "AB-sft-M-s",
+                "minimumQuantity": 0,
+                "minNumberOfPages": 20,
+                "maxNumberOfPages": 300,
+                "dimensionWidth": 210,
+                "dimensionHeight": 210,
+                "dynamicSize": false,
+                "pricingDto": {
+                    "currency": "EUR",
+                    "price": 411,
+                    "pricePerPage": 18
+                }
+            }
+        ]
+    }
+}
+
+# Get product categories [GET /categories]
+Retrieve the list of  product categories available. 
+
++ Request (application/json)
+
++ Response 
+[
+    {
+        "name": "Books",
+        "code": "BO",
+        "subCategories": [
+            {
+                "name": "Hardcover books",
+                "code": "HC"
+            },
+            {
+                "name": "Softcover books",
+                "code": "SC"
+            },
+            {
+                "name": "Layflat books",
+                "code": "LF"
+            }
+        ]
+    },
+    {
+        "name": "Magazines",
+        "code": "MA",
+        "subCategories": [
+            {
+                "name": "Pur bound magazines",
+                "code": "PM"
+            }
+        ]
+    },
+    {
+        "name": "Calendar",
+        "code": "CA",
+        "subCategories": [
+            {
+                "name": "Wall calendar",
+                "code": "WC"
+            }
+        ]
+    },
+    {
+        "name": "Digital products",
+        "code": "DP",
+        "subCategories": [
+            {
+                "name": "Digital publication",
+                "code": "DP"
+            }
+        ]
+    },
+    {
+        "name": "Wall art",
+        "code": "WA",
+        "subCategories": [
+            {
+                "name": "Print",
+                "code": "PR"
+            },
+            {
+                "name": "Canvas",
+                "code": "CA"
+            },
+            {
+                "name": "Aluminium Dibonds",
+                "code": "DI"
+            },
+            {
+                "name": "Foam boards",
+                "code": "FOA"
+            },
+            {
+                "name": "Framed Print",
+                "code": "FRP"
+            },
+            {
+                "name": "Framed Canvas",
+                "code": "FRC"
+            },
+            {
+                "name": "Gallery Print",
+                "code": "GP"
+            },
+            {
+                "name": "Boxed Frame",
+                "code": "BOXED FRAMES"
+            }
+        ]
+    },
+    {
+        "name": "Notebooks",
+        "code": "NB",
+        "subCategories": [
+            {
+                "name": "Notebook wire-o",
+                "code": "NBW"
+
+
+## Quote [POST /quote]
+The Quote endpoint lets you retrieve pricing and shipping information for a set of products without creating an order. You can also use it to check whether the selected products can be fulfilled together as a multi-item order. The offeringId used in the request corresponds to the productId shown in your account under Settings > Products.
+
+
++ Attributes (QuoteRequest)
+
++ Response 200 (application/json)
+
+    + Body
+    
+            {
+                "quoteDetails": {
+                    "countryCode": "CA",
+                    "state": "QC",
+                    "currency": "EUR",
+                    "exchangeRate": "1"
+                },
+                "quotedItems": [
+                    {
+                        "offeringId": 228478,
+                        "numberOfPages": 28,
+                        "quantity": 100,
+                        "basePrice": 3.5,
+                        "pricePerPage": 0.15,
+                        "productPrice": 770.0,
+                        "shippingWholesale": 0.18,
+                        "totalQuantityDiscount": 192.5,
+                        "vatPercentage": 0.0,
+                        "vat": 0.0,
+                        "totalItemPrice": 577.68
+                    },
+                    {
+                        "offeringId": 228478,
+                        "numberOfPages": 28,
+                        "quantity": 200,
+                        "basePrice": 3.5,
+                        "pricePerPage": 0.15,
+                        "productPrice": 1540.0,
+                        "shippingWholesale": 1.21,
+                        "totalQuantityDiscount": 385.0,
+                        "vatPercentage": 0.0,
+                        "vat": 0.0,
+                        "totalItemPrice": 1156.21
+                    },
+                    {
+                        "offeringId": 228478,
+                        "numberOfPages": 28,
+                        "quantity": 200,
+                        "basePrice": 3.5,
+                        "pricePerPage": 0.15,
+                        "productPrice": 1540.0,
+                        "shippingWholesale": 0.36,
+                        "totalQuantityDiscount": 385.0,
+                        "vatPercentage": 0.0,
+                        "vat": 0.0,
+                        "totalItemPrice": 1155.36
+                    }
+                ],
+                "quoteSummary": {
+                    "numberOfItems": 3,
+                    "totalWholesalePrice": 2889.25,
+                    "totalShippingPrice": 1.75,
+                    "vatSummary": [
+                        {
+                            "vatPercentage": 0.0,
+                            "vat": 0.0
+                        }
+                    ],
+                    "totalQuantityDiscount": 962.5
+                }
+            }
+
++ Response 400
+
+           {
+            "url": "http://localhost:8080/rest/v3/quote",
+            "details": "Not all items can be produced at single facility. Please request a quote separately for offerings that are separated with '&&' marks: [228478, 228500] && [228565]. Unfortunately we cannot produce yet offering: 228479",
+            "timestamp": "2023-02-08T09:32:20.437"
+           }
+   
+            
+## Get countries [POST /offering/countries]
+Retrieve a list of countries where a specific product can be shipped.
+
+
++ Attributes (AvailableCountriesForOfferingsRequest)
++ Request 
+        {
+            "merchantApiKey" : "f33f0b13c676f65a3363046243e05dca8a58b7ff",
+            "offeringsId" : [
+                "ABCD1234", "ABCD6789"
+            ]
+        }
+    
+
+
+## Get spine width before creating order [GET /offering/spine]
+Calculate the required spine width for a product or offering before placing an order.
+
+
++ Request (application/json)
+
++ Parameters
+    + merchantApiKey (required, String, `ABCD1234XXXX`)
+    + offeringId (required, Number, `179270`)...Id of the offering in your account
+    + countryCodeIso2 (required, String, `US`)...ISO 2 code of the country where the product will be shipped
+    + state (optional, String, `NY`)...State where the order will be shipped. Optional
+    + numberOfPages (required, Number, `45`)...
+
++ Response 200 (application/json)
+
+    + Body
+    
+            {"spineWidth":23.0}
+         
++ Response 404 (application/json)
+
+    + Body
+    
+            {"url": "http://localhost:8080/rest/v3/offering/spine","details": "No suitable shipping option for country: USA and state: NY!","timestamp": "2020-10-19T17:12:57.091","custom_code": "NO_PF"}          
+
++ Response 404 (application/json)
+
+    + Body
+    
+            {"url": "http://localhost:8080/rest/v3/offering/spine","details": "Country with iso2 code USS not found!","timestamp": "2020-10-19T17:12:57.091"} 
+          
+# Billing entity [/billing-entity]
+
+## Create billing entity [POST /billing-entity]
+Create a new billing entity using the billing address information.
+
+
++ Request (application/json)
+
+Create a new billing entity using the billing address information.
+
++ Attributes (BillingEntityRequest)
+
++ Request (application/json)
+
+    + Body
+    
+            {
+                "apiKey":"368b0b2ee9ff75796d64d4f40798b89ed9292905",
+                "parentEntityId":5,
+                "firstName":"Test",
+                "lastName":"Test",
+                "companyName":"Test",
+                "addressLine1":"Main St No 1",
+                "addressLine2":"Ap 15",
+                "zipCode":"123456",
+                "city":"Test",
+                "state":"AZ",
+                "countryCode":"USA",
+                "vatNumber":"98765",
+                "chamberOfCommerce":"888",
+                "emailAddresses":[
+                    "test@gmail.com",
+                    "test2@gmail.com"
+                ],
+                "phoneNumber":"0654198826"
+            }
+        
++ Response 201
+
+    + Body
+
+            {
+                "id": 8
+            }
+
++ Response 400 (application/json)
+
+    + Body
+    
+            {
+                "url": "http://test.www.peecho.com/rest/v3/billing-entity",
+                "details": "The following mandatory fields are missing: companyName, addressLine1.",
+                "timestamp": "2023-04-26T15:40:07.319982",
+                "custom_code": "INVALID_DATA"
+            }
+
++ Response 401 (application/json)
+
+    + Body
+    
+            {
+                "url": "http://test.www.peecho.com/rest/v3/billing-entity",
+                "details": "Merchant API Key doesn't match parent billing entity API key!",
+                "timestamp": "2023-04-26T15:43:05.786714",
+                "custom_code": "APP_FORBIDDEN"
+            }
+    
++ Response 400 (application/json)
+
+    + Body
+    
+            {
+                "url": "http://test.www.peecho.com/rest/v3/billing-entity",
+                "details": "Email address is not valid.",
+                "timestamp": "2023-04-26T15:44:48.151185"
+            }
+
+
+## Get billing entity [GET /billing-entity]
+Retrieve a list of your billing entities.
+
+
++ Parameters
+    + merchantApiKey (required, String, `abcd1234xxxx`)
+    
++ Response 200 (application/json)
+
+    + Attributes (array[BillingEntityResponse])
+
+    + Body
+    
+            [
+                {
+                    "id": 1,
+                    "companyName": "Billing Entity",
+                    "parentId": null,
+                    "subEntities": [
+                        {
+                            "id": 2,
+                            "companyName": "Billing Entity",
+                            "parentId": 1,
+                            "subEntities": null
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "companyName": "Billing Entity",
+                    "parentId": null,
+                    "subEntities": [
+                        {
+                            "id": 4,
+                            "companyName": "Billing Entity",
+                            "parentId": 3,
+                            "subEntities": null
+                        }
+                    ]
+                }
+            ]
+
++ Response 500 (application/json)
+
+    + Body
+
+            {
+                "url": "http://test.www.peecho.com/rest/v3/billing-entity",
+                "details": "Merchant by merchantApiKey p33ch01 not found",
+                "timestamp": "2023-04-26T17:29:02.65927"
+            }
+
++ Attributes (Order)
+    
++ Request (application/json)
+
+# Product listing-publication [/product-listing]
+
+## Create a product listing-publication [POST /publication/create]
+Create a product listing that users can order via the Peecho Checkout. After creation, you can use the ID returned by the endpoint and go to https://test.www.peecho.com/print/{ID} to view the checkout page for that product or publication.  
+
+The product listing can be set up as a single product with a specific price, or as multiple products from the same category with prices determined by the profit markup defined in your account settings.
+
++ Request (application/json)
+
++ Attributes (CreatePublication)
+
+        {"apiKey":"APABCD1234XXXXI","currency":"EUR","locale":"nl","order":{"reference":"DK123LLP","product":{"title":"Test Publication endpoint","source":{"file":{"src":"https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/api-test.pdf","pages":28,"dimensions":{"height":210,"width":297}}},"thumbnail":{"src":"https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/download.jfif"}}}}
+
++ Response 200
+123456
+
++ Response 200
+{
+ "secure_publication_id": "dec27b95-d22d-4048-96ba-24c1385fd2a8",1  "token": "4b3345f7-bf70-4816-8e60-8cedd9c9ae6e"2}
+
++ Response 401
+{
+ "url": "https://www.peecho.com/rest/v3/publication",
+  "details": "Incorrect merchantApiKey!",
+  "custom_code": "APP_FORBIDDEN",
+  "timestamp": "2020-10-15T16:54:06.276"
+}
+
++ Response 404
+{
+ "url": "http://test.www.peecho.com/rest/v3/publication/create",
+    "details": "Application not found!",
+    "timestamp": "2025-05-23T16:46:48.273807"
+}
+
+
+
+

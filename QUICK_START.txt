@@ -1,0 +1,120 @@
+═══════════════════════════════════════════════════════════════════════════════
+  PEECHO DIRECT ORDER API - QUICK START
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 GOAL: Test end-to-end Peecho order creation with Cloudinary image upload
+
+───────────────────────────────────────────────────────────────────────────────
+ STEP 1: GATHER CREDENTIALS (5 mins)
+───────────────────────────────────────────────────────────────────────────────
+
+From Cloudinary (https://cloudinary.com/console):
+  □ CLOUDINARY_CLOUD_NAME       (shown at top of console)
+  □ CLOUDINARY_UPLOAD_PRESET    (Settings → Upload → find unsigned preset)
+
+From Peecho (https://www.peecho.com/account):
+  □ PEECHO_MERCHANT_KEY          (Settings → API section)
+  □ PEECHO_PUBLICATION_ID        (your product's ID, e.g., 2196394)
+
+Image file:
+  □ ~/Downloads/woman-sitting-on-blanket-park-260nw-2678672257.webp
+
+───────────────────────────────────────────────────────────────────────────────
+ STEP 2: SET ENVIRONMENT VARIABLES
+───────────────────────────────────────────────────────────────────────────────
+
+export CLOUDINARY_CLOUD_NAME="your_cloud_name"
+export CLOUDINARY_UPLOAD_PRESET="your_preset_name"
+export PEECHO_MERCHANT_KEY="your_merchant_key"
+export PEECHO_PUBLICATION_ID="your_publication_id"
+
+───────────────────────────────────────────────────────────────────────────────
+ STEP 3: RUN THE TEST
+───────────────────────────────────────────────────────────────────────────────
+
+cd /home/peter/.openclaw/workspace/peecho-dzine-app
+node test-direct-order.mjs
+
+───────────────────────────────────────────────────────────────────────────────
+ STEP 4: READ OUTPUT
+───────────────────────────────────────────────────────────────────────────────
+
+SUCCESS looks like:
+  ✅ All environment variables are set!
+  ✅ Image loaded successfully
+  ✅ Image uploaded to Cloudinary
+  ✅ Order created with ID: ord_abc123
+  ✅ Order updated with address and image
+  
+  🎉 SUCCESS! Order ID: ord_abc123def456
+
+FAILURE will show:
+  ❌ Error message with specific cause
+  💡 List of possible reasons
+  🔧 Instructions to fix
+
+───────────────────────────────────────────────────────────────────────────────
+ NEED HELP?
+───────────────────────────────────────────────────────────────────────────────
+
+1. Read: BEFORE_YOU_RUN_TEST.md          (setup checklist)
+2. Read: DIRECT_ORDER_TEST_SUMMARY.md    (overview & reference)
+3. Read: TEST_DIRECT_ORDER_README.md     (detailed guide)
+4. View: TEST_GUIDE_INDEX.md             (full navigation)
+
+───────────────────────────────────────────────────────────────────────────────
+ COMMON ISSUES
+───────────────────────────────────────────────────────────────────────────────
+
+❌ "CLOUDINARY_CLOUD_NAME - MISSING"
+   → Run: export CLOUDINARY_CLOUD_NAME=your_cloud_name
+
+❌ "Cloudinary upload failed: 500"
+   → Check: https://cloudinary.com/console/settings/upload
+   → Ensure: "Unsigned" toggle is ON
+   → Ensure: "Image" resource type is checked
+
+❌ "Image not found"
+   → Verify: ls ~/Downloads/woman-sitting-on-blanket-park-260nw-2678672257.webp
+
+───────────────────────────────────────────────────────────────────────────────
+ ONE-LINER (if you have all credentials)
+───────────────────────────────────────────────────────────────────────────────
+
+export CLOUDINARY_CLOUD_NAME="cloud" && \
+export CLOUDINARY_UPLOAD_PRESET="preset" && \
+export PEECHO_MERCHANT_KEY="key" && \
+export PEECHO_PUBLICATION_ID="2196394" && \
+cd /home/peter/.openclaw/workspace/peecho-dzine-app && \
+node test-direct-order.mjs
+
+───────────────────────────────────────────────────────────────────────────────
+ FILES CREATED
+───────────────────────────────────────────────────────────────────────────────
+
+test-direct-order.mjs                    ⭐ THE TEST APP
+TEST_GUIDE_INDEX.md                      📚 Navigation guide (start here)
+BEFORE_YOU_RUN_TEST.md                   ✅ Setup checklist
+DIRECT_ORDER_TEST_SUMMARY.md             📋 Overview & reference
+TEST_DIRECT_ORDER_README.md              📖 Detailed guide
+QUICK_START.txt                          📌 This file
+
+───────────────────────────────────────────────────────────────────────────────
+ WHAT IT TESTS
+───────────────────────────────────────────────────────────────────────────────
+
+✅ Can upload images to Cloudinary
+✅ Can create orders in Peecho
+✅ Can attach images to orders
+✅ Full end-to-end integration
+✅ Error handling & diagnostics
+
+───────────────────────────────────────────────────────────────────────────────
+ READY?
+───────────────────────────────────────────────────────────────────────────────
+
+→ Start with: BEFORE_YOU_RUN_TEST.md
+→ Then run: node test-direct-order.mjs
+→ Good luck! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════

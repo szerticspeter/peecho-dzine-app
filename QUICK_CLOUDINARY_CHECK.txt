@@ -1,0 +1,183 @@
+═══════════════════════════════════════════════════════════════════════════════
+  CLOUDINARY PRESET CHECK - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Your situation:
+  ✅ Preset name is correct
+  ✅ Preset is unsigned
+  ❓ Still getting HTTP 500 error from Cloudinary
+
+═══════════════════════════════════════════════════════════════════════════════
+THE MOST COMMON CULPRITS (Check These First)
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣  RESOURCE TYPE NOT SET TO IMAGE
+─────────────────────────────────────
+
+Location: https://cloudinary.com/console
+         → Settings (gear icon)
+         → Upload tab
+         → Find your preset
+         → Look for "Resource type" or "Allowed formats"
+
+Check for:
+  ☑ Image  ← THIS MUST BE CHECKED
+  ☐ Video
+  ☐ Raw
+
+If "Image" is NOT checked:
+  • Click the checkbox ☑
+  • Save changes
+  • Try again
+
+⏰ This is the #1 cause of uploads failing!
+
+
+2️⃣  FORMAT WHITELIST EXCLUDING JPEG
+────────────────────────────────────
+
+Location: Same as above
+         Look for "Allowed formats" field
+
+What it might show:
+  □ Empty (means allow everything) ✅ GOOD
+  □ A list like: jpg, png, gif, webp ✅ GOOD (has jpg)
+  □ A list like: png, gif, webp ❌ BAD (no jpg!)
+
+If it shows formats and JPEG is not in the list:
+  • Add "jpg" or "jpeg" to the list
+  • Save changes
+  • Try again
+
+The function sends JPEG base64, so JPEG must be allowed.
+
+
+3️⃣  OTHER RESTRICTIONS
+──────────────────────
+
+Look for any of these in the preset settings:
+
+Folder restrictions?
+  ✅ Should be fine, folder is just "dzine-orders"
+
+File size limit?
+  ✅ Should be fine, test image is 37 KB
+
+Signed vs unsigned?
+  ✅ You said it's unsigned, that's correct
+
+Access level?
+  ✅ Should be "Public" or allow uploads
+
+Any blacklist/whitelist rules?
+  ❓ These could block uploads
+  → Remove any restrictions temporarily for testing
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP-BY-STEP VERIFICATION (2 MINUTES)
+═══════════════════════════════════════════════════════════════════════════════
+
+Step 1: Open Cloudinary Dashboard
+  → https://cloudinary.com/console
+  → Click Settings (⚙️ gear icon)
+  → Click "Upload" tab
+
+Step 2: Find Your Preset
+  → Look for your CLOUDINARY_UPLOAD_PRESET value
+  → Click on it to open details
+
+Step 3: Check Resource Type
+  Question: Is "Image" checkbox ☑ checked?
+  
+  If NO:
+    → Check the ☑ Image checkbox
+    → Scroll down and click [Save]
+    → Note: Changes take effect immediately
+
+  If YES:
+    → Continue to next step
+
+Step 4: Check Allowed Formats
+  Question: What does "Allowed formats" show?
+  
+  If EMPTY:
+    → That's fine, all formats allowed ✅
+    → Continue to next step
+
+  If LIST OF FORMATS:
+    → Does it include "jpg" or "jpeg"?
+    
+    If YES:
+      → That's fine ✅
+      → Continue to next step
+    
+    If NO:
+      → Add "jpg" to the list
+      → Click [Save]
+      → The function will now work
+
+Step 5: Test Again
+  → Run: node test-env-vars.js
+  → Check if error changed
+
+═══════════════════════════════════════════════════════════════════════════════
+WHAT HAPPENS AFTER YOU FIX IT
+═══════════════════════════════════════════════════════════════════════════════
+
+After you check/fix the preset:
+
+NO REDEPLOYMENT NEEDED
+  • Changes to Cloudinary preset take effect immediately
+  • No need to redeploy from Netlify
+  • No need to update environment variables
+
+JUST TEST AGAIN
+  • Run the test script: node test-env-vars.js
+  • Or run the full app: node test-complete-flow.js
+  • Should work now!
+
+═══════════════════════════════════════════════════════════════════════════════
+NUCLEAR OPTION (If Nothing Works)
+═══════════════════════════════════════════════════════════════════════════════
+
+If you've checked everything and it's still failing:
+
+Create a BRAND NEW preset from scratch:
+
+1. Cloudinary console → Settings → Upload
+2. Click "Add upload preset"
+3. Name it: test-dzine (or any name)
+4. Set:
+   ✅ Unsigned: ON
+   ✅ Resource type: Image (ONLY check Image, uncheck others)
+   ✅ Allowed formats: EMPTY (leave blank for all)
+   ✅ Folder: dzine-orders
+5. Click [Create]
+6. Update Netlify:
+   $ netlify link
+   $ netlify env:set CLOUDINARY_UPLOAD_PRESET "test-dzine"
+   $ netlify deploy --prod
+7. Test again
+
+If the FRESH preset works → something in old preset was wrong
+If fresh preset ALSO fails → Cloudinary account issue, contact support
+
+═══════════════════════════════════════════════════════════════════════════════
+SUMMARY
+═══════════════════════════════════════════════════════════════════════════════
+
+Most likely issue:
+  → "Image" resource type not checked in preset settings
+
+Second most likely issue:
+  → Format whitelist exists but doesn't include "jpg" or "jpeg"
+
+Both are 30-second fixes in Cloudinary console.
+
+No redeployment needed after fixing!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Generated: 2026-04-04 21:49 GMT+2
+Focus: Practical checklist, no theory
+Time to check: ~2 minutes

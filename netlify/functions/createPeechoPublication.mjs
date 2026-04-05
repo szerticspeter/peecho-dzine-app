@@ -53,6 +53,8 @@ export async function handler(event) {
     title = 'My Custom Dzine',
     currency = 'EUR',
     locale = 'en',
+    width,   // actual image width in px (optional)
+    height,  // actual image height in px (optional)
   } = payload;
 
   if (!imageUrl) {
@@ -78,8 +80,8 @@ export async function handler(event) {
             src: imageUrl,
             pages: 1,
             dimensions: {
-              width: 210,
-              height: 297,
+              width: width || 210,
+              height: height || 210,  // default square if no dims provided
             },
           },
         },

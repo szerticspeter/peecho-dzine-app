@@ -4,14 +4,28 @@ import './App.css';
 function App() {
   const [isOrdering, setIsOrdering] = useState(false);
 
-  const handleOrderNow = async (imageUrl) => {
+  // Get image dimensions from a proxied URL
+  const getImageDimensions = (proxiedUrl) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => resolve({ width: 210, height: 210 }); // fallback: square
+      img.src = proxiedUrl;
+    });
+  };
+
+  const handleOrderNow = async (originalUrl, proxiedUrl) => {
     setIsOrdering(true);
     try {
-      // Step 1: Save to Cloudinary
+      // Step 1: Get actual image dimensions (using proxied URL for browser access)
+      const dims = await getImageDimensions(proxiedUrl || originalUrl);
+      console.log('Image dimensions:', dims);
+
+      // Step 2: Save to Cloudinary
       const saveResponse = await fetch('/.netlify/functions/saveEditedImage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageData: imageUrl }),
+        body: JSON.stringify({ imageData: originalUrl }),
       });
 
       if (!saveResponse.ok) {
@@ -23,11 +37,11 @@ function App() {
       const cloudinaryUrl = saveResult.imageUrl;
       if (!cloudinaryUrl) throw new Error('Cloudinary did not return an image URL.');
 
-      // Step 2: Create Peecho Publication
+      // Step 3: Create Peecho Publication with real dimensions
       const pubResponse = await fetch('/.netlify/functions/createPeechoPublication', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: cloudinaryUrl }),
+        body: JSON.stringify({ imageUrl: cloudinaryUrl, width: dims.width, height: dims.height }),
       });
 
       const pubResult = await pubResponse.json();
@@ -582,10 +596,9 @@ function App() {
                   </div>
                   <button 
                     onClick={() => {
-                      // Find the original Dzine URL for the selected proxied URL
                       const selectedIndex = result.urls.indexOf(result.selectedUrl);
                       const originalUrl = result.originalUrls?.[selectedIndex] || result.selectedUrl;
-                      handleOrderNow(originalUrl);
+                      handleOrderNow(originalUrl, result.selectedUrl);
                     }}
                     className="create-product-button"
                     disabled={isOrdering}

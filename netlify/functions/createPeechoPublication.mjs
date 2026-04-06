@@ -61,6 +61,10 @@ export async function handler(event) {
     return jsonResponse(400, { error: 'Missing required field: imageUrl' });
   }
 
+  // Peecho expects a PDF source file, not a raw image.
+  // Cloudinary converts on-the-fly when the extension is changed to .pdf.
+  const pdfUrl = imageUrl.replace(/\.(jpe?g|png|webp|gif)(\?|$)/i, '.pdf$2');
+
   const apiKey = process.env.PEECHO_MERCHANT_KEY;
   if (!apiKey) {
     console.error('Missing PEECHO_MERCHANT_KEY env var');
@@ -77,7 +81,7 @@ export async function handler(event) {
         title,
         source: {
           file: {
-            src: imageUrl,
+            src: pdfUrl,
             pages: 1,
             dimensions: {
               width: width || 210,

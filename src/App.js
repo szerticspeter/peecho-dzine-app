@@ -673,11 +673,12 @@ function App() {
                       : 'Order Now →'}
                   </button>
                   <p className="checkout-trust">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
                       <path d="M0 0h24v24H0z" fill="none"/>
                       <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
                     </svg>
-                    Checkout handled securely by Peecho
+                    Checkout handled securely by
+                    <img src="/images/peecho-logo.svg" alt="Peecho" className="checkout-trust-logo" />
                   </p>
                 </section>
               )}
@@ -687,17 +688,29 @@ function App() {
         <div className="redirect-overlay">
           <div className="redirect-card">
             <p className="redirect-brand">Give a Special Gift</p>
+            <div className="redirect-cart-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="40" height="40">
+                <path d="M0 0h24v24H0z" fill="none"/>
+                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.1 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.43 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
+            </div>
             <div className="redirect-destination">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M0 0h24v24H0z" fill="none"/>
                 <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
               </svg>
               <span className="redirect-domain">peecho.com</span>
             </div>
+            <div className="redirect-peecho-logo">
+              <img src="/images/peecho-logo.svg" alt="Peecho" />
+            </div>
             <p className="redirect-message">Taking you to Peecho's secure checkout…</p>
             <div className="redirect-progress">
               <div className="redirect-progress-bar" />
             </div>
+            <a href={redirectingTo} className="redirect-fallback-link">
+              Not redirected automatically? Click here
+            </a>
           </div>
         </div>
       )}

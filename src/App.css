@@ -567,6 +567,13 @@ body {
     font-size: 0.82rem;
   }
 
+  .checkout-trust-logo {
+    height: 14px;
+    width: auto;
+    vertical-align: middle;
+    opacity: 0.6;
+  }
+
 /* Redirect interstitial */
 .redirect-overlay {
   position: fixed;
@@ -592,14 +599,18 @@ body {
 }
 
 .redirect-brand {
-  font-size: 1.1rem;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 28px;
-  letter-spacing: -0.2px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 20px;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 1.5px;
+}
+
+.redirect-cart-icon {
+  color: white;
+  margin-bottom: 20px;
+  opacity: 0.95;
 }
 
 .redirect-destination {
@@ -620,10 +631,37 @@ body {
   letter-spacing: 0.2px;
 }
 
+.redirect-peecho-logo {
+  background: white;
+  border-radius: 10px;
+  padding: 8px 16px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.redirect-peecho-logo img {
+  height: 22px;
+  width: auto;
+  display: block;
+}
+
 .redirect-message {
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.75);
-  margin: 0 0 28px;
+  margin: 0 0 20px;
+}
+
+.redirect-fallback-link {
+  display: block;
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.redirect-fallback-link:hover {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .redirect-progress {

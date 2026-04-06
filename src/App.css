@@ -557,19 +557,94 @@ body {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
   }
   
-  .guarantee-text {
-    margin-top: 25px;
+  .checkout-trust {
+    margin-top: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #4b5563;
-    font-size: 0.95rem;
+    gap: 5px;
+    color: #9ca3af;
+    font-size: 0.82rem;
   }
-  
-  .guarantee-icon {
-    margin-right: 8px;
-    color: #10b981;
-  }
+
+/* Redirect interstitial */
+.redirect-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.redirect-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 24px;
+  padding: 48px 56px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  color: white;
+}
+
+.redirect-brand {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 28px;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+}
+
+.redirect-destination {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 100px;
+  padding: 10px 22px;
+  margin-bottom: 24px;
+}
+
+.redirect-domain {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.2px;
+}
+
+.redirect-message {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 28px;
+}
+
+.redirect-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.redirect-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: white;
+  border-radius: 2px;
+  animation: redirect-fill 2.5s linear forwards;
+}
+
+@keyframes redirect-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
   
   /* Admin Section */
   .admin-section {

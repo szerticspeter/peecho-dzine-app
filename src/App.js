@@ -81,7 +81,7 @@ function App() {
   const styleSectionRef = useRef(null);
   const orderButtonRef = useRef(null);
   const processingCardRef = useRef(null);
-  const isFirstResult = useRef(true);
+  const prevResultUrlsRef = useRef(null);
 
   const processingMessages = [
     "Your stylized image is being generated — it may take up to 60 seconds",
@@ -113,15 +113,15 @@ function App() {
   }, [isProcessing]);
 
   useEffect(() => {
-    if (result && resultRef.current) {
+    const currentUrls = result?.urls ?? null;
+    if (result && currentUrls !== prevResultUrlsRef.current && resultRef.current) {
       resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    if (!result) isFirstResult.current = true;
+    prevResultUrlsRef.current = currentUrls;
   }, [result]);
 
   useEffect(() => {
     if (!result?.selectedUrl) return;
-    if (isFirstResult.current) { isFirstResult.current = false; return; }
     orderButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [result?.selectedUrl]);
 
@@ -476,7 +476,7 @@ function App() {
                   `/.netlify/functions/proxyImage?url=${encodeURIComponent(url)}`
                 );
                 // Store original Dzine URLs alongside proxied ones for ordering
-                setResult({ urls: proxiedUrls, selectedUrl: proxiedUrls[0], originalUrls: resultUrls });
+                setResult({ urls: proxiedUrls, selectedUrl: null, originalUrls: resultUrls });
                 console.log('Successfully retrieved result image URLs:', resultUrls);
               } catch (e) {
                 console.error('Invalid URL format in results:', resultUrls);
@@ -666,7 +666,7 @@ function App() {
                       handleOrderNow(originalUrl, result.selectedUrl);
                     }}
                     className="create-product-button"
-                    disabled={isOrdering}
+                    disabled={isOrdering || !result?.selectedUrl}
                   >
                     {isOrdering
                       ? <><span className="spinner"></span>Preparing your order…</>

@@ -528,12 +528,6 @@ body {
     max-width: 100%;
     border-radius: 16px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    transition: all 0.5s ease;
-  }
-  
-  .result-section:hover img {
-    transform: translateY(-8px);
-    box-shadow: 0 25px 50px rgba(139, 92, 246, 0.25);
   }
   
   .create-product-button {
@@ -570,7 +564,7 @@ body {
   .checkout-trust-logo {
     height: 14px;
     width: auto;
-    vertical-align: middle;
+    display: block;
     opacity: 0.6;
   }
 

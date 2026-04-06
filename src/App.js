@@ -131,12 +131,6 @@ function App() {
     return () => URL.revokeObjectURL(url);
   }, [uploadedImage]);
   
-  // Debug environment variables on startup - minimal version to avoid exposing secrets
-  console.log('App initialized, ENV vars status:');
-  console.log('- NODE_ENV:', process.env.NODE_ENV);
-  console.log('- DZINE API Key exists:', !!process.env.REACT_APP_DZINE_API_KEY);
-  console.log('- DZINE API Key valid format:', !!process.env.REACT_APP_DZINE_API_KEY && process.env.REACT_APP_DZINE_API_KEY !== 'your_api_key_here');
-
   // Always use our predefined styles for the UI
   // but we'll map them to real API style codes when making the API request
   useEffect(() => {
@@ -312,9 +306,6 @@ function App() {
           5 // More retries for this important call
         );
         
-        // Debug: Log the full API response
-        console.log('API Response:', JSON.stringify(data, null, 2));
-        
         if (data.code === 200 && data.data && data.data.task_id) {
           // Poll for task completion
           await pollTaskProgress(data.data.task_id);
@@ -386,8 +377,6 @@ function App() {
           throw new Error(`API call failed: ${response.status} ${response.statusText}`);
         }
         
-        const responseText = await response.clone().text();
-        console.log('Raw response:', responseText);
         return await response.json();
       } catch (error) {
         console.error(`API call attempt ${attempt + 1} failed:`, error);
@@ -458,9 +447,6 @@ function App() {
           
           if (status === 'success' || status === 'succeeded' || status === 'succeed') {
             isComplete = true;
-            
-            // Debug: Log the generate_result_slots
-            console.log('Result slots:', data.data.generate_result_slots);
             
             // Check if the generate_result_slots array exists and has contents
             if (!data.data.generate_result_slots || !Array.isArray(data.data.generate_result_slots) || data.data.generate_result_slots.length === 0) {

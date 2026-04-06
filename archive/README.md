@@ -158,3 +158,41 @@ archive/
 ```
 
 This keeps the evolution visible and makes it easy to compare approaches over time.
+
+---
+
+## Peecho API Investigation (2026-04-04 → 2026-04-05)
+
+**Status:** Resolved — API working, integration complete.
+
+### Problem
+
+Original design assumed a static product ID from the Peecho dashboard. The actual requirement was on-the-fly product creation per user image.
+
+```
+Original: User uploads → Dzine AI styles → FIXED Product ID → Order
+Needed:   User uploads → Dzine AI styles → NEW Peecho Product per image → Order
+```
+
+### Resolution
+
+Found: Peecho V3 Publication Creation API (`POST /rest/v3/publication/create`)
+
+Key findings:
+- Correct endpoint: `https://www.peecho.com/rest/v3/publication/create` (not `api.peecho.com`)
+- Supports dynamic product creation per-user image
+- Returns a numeric publication ID; checkout URL is `https://www.peecho.com/print/{id}`
+- No `fixedOfferingId` needed — Peecho auto-filters products by location + image dimensions
+- No `enableSecureCheckout` — simple numeric ID URL is more reliable
+
+Working credentials (prod):
+- `PEECHO_MERCHANT_KEY`: `9453a60bbb4ff78d9543640832a5980a2f52f4bd`
+- `PEECHO_BUTTON_KEY`: `177417121641766683`
+
+### Bugs Fixed
+
+- Cloudinary upload: Fixed FormData encoding in `saveEditedImage.mjs` (was using URLSearchParams)
+
+### Canvas Product Note
+
+Canvases have fixed sizes — no dynamic adjustment in Peecho checkout. The image prints exactly as uploaded/styled. No backup preview in Peecho (unlike Prints/Dibond). Peecho filters which canvas sizes are available based on image dimensions and shipping location.
